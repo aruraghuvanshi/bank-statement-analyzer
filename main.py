@@ -16,7 +16,7 @@ class BankStatementAnalyzer(App):
 
     def __init__(self, *args):
 
-        super(BankStatementAnalyzer, self).__init__(*args, static_file_path={'my_res': './resx/'})
+        super(BankStatementAnalyzer, self).__init__(*args, static_file_path={'path': './resx/'})
 
         self.bank_list = ['Select Bank', 'Axis Bank', 'HDFC Bank', 'Kotak Mahindra Bank', 'ICICI Bank']
         self.date = datetime.date.today().strftime('%d-%m-%Y')
@@ -63,50 +63,45 @@ class BankStatementAnalyzer(App):
         self.frame_header = C.create_container(self.window, 10, 90, 0, 0)
         self.frame_header.css_background_color = self.frame_header_color
         self.frame_header.css_top = "0%"
-        self.frame_left = C.create_container(self.window, 80, 20, 0, 5)
-        self.frame_left.css_background_color = self.frame_left_color
 
         self.frame_footer_left = C.create_container(self.window, 12, 20, 0, 87)
         self.frame_footer_left.css_background_color = self.frame_footer_left_color
 
         self.progress = C.create_progress(self.window, 1, 100, 0, 99, a=0, b=100)
 
-        self.frame_right = C.create_container(self.window, 80, 40, 21, 5)
+        self.frame_left = C.create_container(self.window, 75, 20, 0, 10)
+        self.frame_left.css_background_color = self.frame_left_color
+        self.frame_right = C.create_container(self.window, 75, 35, 21, 10)
         self.frame_right.css_background_color = self.frame_right_color
-        self.frame_right_2 = C.create_container(self.window, 80, 28, 62, 5)
+        self.frame_right_2 = C.create_container(self.window, 75, 33, 57, 10)
         self.frame_right_2.css_background_color = self.frame_right_2_color
         self.frame_login_register = C.create_container(self.window, 30, 10, 90, 0)
         self.frame_login_register.css_background_color = self.frame_login_register_color
 
-        # self.frame_left.empty()
-        # self.frame_footer_left.empty()
-        # self.frame_right.empty()
-        # self.frame_right_2.empty()
         # --------------------- LABELS ---------------------------------------------------------- ]
 
         lbl_header = C.create_label(self.frame_header, 20, 25, 10, 30, text='BANK STATEMENT ANALYZER',
                                     bg='deepskyblue', fg='white')
         lbl_header.css_font_size = '18px'
-        # self.frame_header.append(lbl_header)
+
         lbl_subheader = C.create_label(self.frame_header, 10, 20, 13.35, 60,
                                        text='-- Aru Raghuvanshi build 07042021',
                                        bg='deepskyblue', fg='white')
         lbl_subheader.css_font_size = '12px'
-        # self.frame_header.append(lbl_subheader)
+
         lbl_datetime = C.create_label(self.frame_header, 20, 7, 93, 40, text=f'Date: {self.date}',
                                       bg='deepskyblue', fg='white', align='right')
         lbl_datetime.css_font_size = '14px'
-        # self.frame_header.append(lbl_datetime)
 
         self.notif_1 = C.create_label(self.frame_footer_left, 6, 100, 0, 10, text='')
         self.notif_2 = C.create_label(self.frame_footer_left, 6, 100, 0, 60, text='')
 
         # --------------------- APPENDS --------------------------------------------------------- ]
-        self.window.append(self.frame_right)
-        self.window.append(self.frame_right_2)
-        self.window.append(self.frame_left)
-        self.window.append(self.frame_header)
-        self.window.append(self.frame_footer_left)
+        # self.window.append(self.frame_right)
+        # self.window.append(self.frame_right_2)
+        # self.window.append(self.frame_left)
+        # self.window.append(self.frame_header)
+        # self.window.append(self.frame_footer_left)
 
         self.login_btn = C.create_button(self.window, 3, 7, 92, 1, text='Login',
                                          command=lambda x: self.login_clicked())
@@ -126,9 +121,10 @@ class BankStatementAnalyzer(App):
         self.username = C.create_entry(self.frame_login_register, 7, 52, 40, 40, fg='black',
                                        command=self.log_on_enter_username)
         self.pw = C.create_entry(self.frame_login_register, 7, 52, 40, 50, fg='black',
-                                 command=self.log_on_enter_pw)
+                                 command=self.log_on_enter_pw, input_type='password')
         self.login_ok = C.create_button(self.frame_login_register, 10, 15, 75, 65, text='OK',
                                         command=lambda x: self.login_ok_clicked())
+
 
 
     def login_ok_clicked(self):
@@ -161,16 +157,16 @@ class BankStatementAnalyzer(App):
                                              bg='lightgreen')
 
             # --------------------- FILE UPLOADER & SELECTOR -------------------------------------- ]
-            upl = C.create_uploader(self.frame_left, 7, 30, 2, 8, filename='./files/')
+            upl = C.create_uploader(self.frame_left, 7, 30, 2, 4, filename='./files/')
             upl.onsuccess.do(self.fileupload_successful)
             upl.onfailed.do(self.fileupload_failed)
 
             # --------------------- BUTTONS --------------------------------------------------------- ]
-            self.btn_analyze = C.create_button(self.frame_left, 7, 30, 2, 17, bg='cornflowerblue',
+            self.btn_analyze = C.create_button(self.frame_left, 7, 30, 2, 13, bg='cornflowerblue',
                                                command=lambda x: self.run_analyzer(), text='ANALYZE')
 
             # --------------------- DROPDOWNS --------------------------------------------------------- ]
-            self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 7, 65, 35, 8,
+            self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 7, 65, 35, 4,
                                             bg='powderblue', fg='white', command=self.drop_down_changed)
 
 
@@ -226,7 +222,7 @@ class BankStatementAnalyzer(App):
         print(f'Ok clicked on Register Button')
         self.frame_login_register.empty()
 
-        # Add comparison if user already exists here
+        # Checking if the user already exists in the records
         try:
             df = pd.read_csv('user_registration_info.csv')          # Read the User records file
             df.drop('Unnamed: 0', inplace=True, axis=1)
@@ -318,18 +314,17 @@ class BankStatementAnalyzer(App):
                     self.set_notification('Rendering results...', bar=2)
                 dt, self.df = load_test_data(testcsv, model_name, cv_name, le_name)
 
-                self.table = C.create_table(self.frame_right, dt, 91, 97, 2, 8,
+                self.table = C.create_table(self.frame_right, dt, 91, 97, 2, 4,
                                             align='left', justify='left',
                                             display='block')
-                # self.frame_right.append(self.table)
 
-                self.btn_graph = C.create_button(self.frame_left, 7, 30, 35, 17, bg='yellowgreen',
+                self.btn_graph = C.create_button(self.frame_left, 7, 30, 35, 13, bg='yellowgreen',
                                                  command=lambda x: self.create_graph(), text='VIEW EXPENSES')
                 with self.update_lock:
                     self.progress.set_value(0)
                     self.set_notification('DONE', bar=2)
 
-                self.btn_analyze = C.create_button(self.frame_left, 7, 30, 68, 17, bg='cornflowerblue',
+                self.btn_analyze = C.create_button(self.frame_left, 7, 30, 68, 13, bg='cornflowerblue',
                                                    text='ANALYTICS', command=lambda x: self.clicked_analytics())
 
             else:
@@ -404,7 +399,7 @@ class BankStatementAnalyzer(App):
             res.append(li)
 
         res.insert(0, ['DATE', 'PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
-        self.table2 = C.create_table(self.frame_right_2, res, 80, 97, 2, 8,
+        self.table2 = C.create_table(self.frame_right_2, res, 80, 97, 2, 4,
                                      align='center', justify='center', display='block')
         self.table2.style['overflow'] = 'overflow'
         self.frame_right_2.append(self.table2)
@@ -412,6 +407,7 @@ class BankStatementAnalyzer(App):
 
     def clicked_analytics(self):
         self.frame_right_2.empty()
+        self.img = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 96, 2, 2)
 
 
 
@@ -421,7 +417,6 @@ configuration = {'config_project_name': 'MainScreen',
                  'config_enable_file_cache': True,
                  'config_start_browser': True,
                  'config_resourcepath': './resx/'}
-                 # 'config_resourcepath': './res/'}
 
 
 start(BankStatementAnalyzer, address=configuration['config_address'], port=configuration['config_port'],

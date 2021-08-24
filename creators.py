@@ -281,10 +281,16 @@ class Creator:
 
 
     def create_entry(self, frame, H, W, L, T, command=None, bg='navyblue', fg='white',
-                      align='center', justify='space-around',
+                      align='center', justify='space-around', input_type='',
                       display='inline', position='absolute', px=False):
 
-        btn = tk.TextInput()
+        # btn = tk.TextInput()
+        if input_type == 'password':
+            btn = tk.TextInput(input_type='password')
+            btn.attributes['type'] = 'password'
+        else:
+            btn = tk.TextInput()
+
         # btn.set_text('')
         if px:
             btn.variable_name = 'drp'
