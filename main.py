@@ -154,13 +154,11 @@ class BankStatementAnalyzer(App):
                            text=f"Logged In.", bg='azure')
             user = self.login_info['username']
             U = User(user)
-            C.create_label(self.frame_login_register, 10, 75, 20, 35,
+            self.lgt = C.create_label(self.frame_login_register, 10, 75, 20, 35,
                            text=f"Session: {U.get_name()}", bg='azure')
-            self.login_btn = C.create_button(self.window, 3, 7, 92, 1, text='Logout',
-                                             command=lambda x: self.login_clicked(),
+            self.logout_btn = C.create_button(self.window, 3, 7, 92, 1, text='Logout',
+                                             command=lambda x: self.logout_clicked(),
                                              bg='lightgreen')
-
-
 
             # --------------------- FILE UPLOADER & SELECTOR -------------------------------------- ]
             upl = C.create_uploader(self.frame_left, 7, 30, 2, 8, filename='./files/')
@@ -174,6 +172,21 @@ class BankStatementAnalyzer(App):
             # --------------------- DROPDOWNS --------------------------------------------------------- ]
             self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 7, 65, 35, 8,
                                             bg='powderblue', fg='white', command=self.drop_down_changed)
+
+
+    def logout_clicked(self):
+
+        self.frame_left.empty()
+        self.frame_right.empty()
+        self.frame_right_2.empty()
+        self.frame_footer_left.empty()
+        self.login_btn = C.create_button(self.window, 3, 7, 92, 1, text='Login',
+                                         command=lambda x: self.login_clicked())
+        self.register_btn = C.create_button(self.window, 3, 7, 92, 6, text='Register',
+                                            command=lambda x: self.register_clicked())
+        with self.update_lock:
+            self.lgt.set_text("")
+
 
 
     def register_clicked(self):
