@@ -326,8 +326,6 @@ class BankStatementAnalyzer(App):
             self.set_notification('Please Select Bank from the Dropdown list.')
 
 
-
-
     def create_graph(self):
         print('In create Graph')
         def expense_by_category(df, cat='PRED_CAT', exception=False,
@@ -350,7 +348,7 @@ class BankStatementAnalyzer(App):
             print(f'catdf: \n {catdf}')
 
             # plt.show()                          #ValueError: signal only works in main thread
-            plt.savefig('expenses.png')
+            plt.savefig('resx/expenses.png')
 
 
         items = self.df.PRED_CAT.unique().tolist()
