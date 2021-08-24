@@ -118,13 +118,16 @@ class BankStatementAnalyzer(App):
         self.frame_login_register.empty()
         self.lbl_username = C.create_label(self.frame_login_register, 7, 40, 5, 40, text='Username:', bg='azure')
         self.lbl_pw = C.create_label(self.frame_login_register,  7, 40, 5, 50, text='Password:', bg='azure')
-        self.username = C.create_entry(self.frame_login_register, 7, 52, 40, 40, fg='black',
+        self.username = C.create_entry(self.frame_login_register, 7, 52, 40, 40, fg='black', input_type='regular',
                                        command=self.log_on_enter_username)
         self.pw = C.create_entry(self.frame_login_register, 7, 52, 40, 50, fg='black',
-                                 command=self.log_on_enter_pw, input_type='password')
+                                 command=self.on_password, input_type='password')
         self.login_ok = C.create_button(self.frame_login_register, 10, 15, 75, 65, text='OK',
                                         command=lambda x: self.login_ok_clicked())
 
+    def on_password(self, w, val):
+        print("password: " + str(val))
+        self.login_info['pw1'] = val
 
 
     def login_ok_clicked(self):
@@ -193,9 +196,9 @@ class BankStatementAnalyzer(App):
         self.username = C.create_entry(self.frame_login_register, 7, 52, 40, 40, fg='black',
                                        command=self.reg_on_enter_username)
         self.pw1 = C.create_entry(self.frame_login_register, 7, 52, 40, 50, fg='black',
-                                  command=self.reg_on_enter_pw1)
+                                  command=self.reg_on_enter_pw1, input_type='password')
         self.pw2 = C.create_entry(self.frame_login_register, 7, 52, 40, 60, fg='black',
-                                  command=self.reg_on_enter_pw2)
+                                  command=self.reg_on_enter_pw2, input_type='password')
         self.login_ok = C.create_button(self.frame_login_register, 10, 15, 75, 75, text='OK',
                                         command=lambda x: self.register_ok_clicked())
 
@@ -355,7 +358,8 @@ class BankStatementAnalyzer(App):
             catdf.set_title('Expenses by Category', fontsize=20)
             print(f'catdf: \n {catdf}')
 
-            # plt.show()                          #ValueError: signal only works in main thread
+            # with self.update_lock:
+            #     plt.show()                          #ValueError: signal only works in main thread
             plt.savefig('resx/expenses.png')
 
 
@@ -383,6 +387,8 @@ class BankStatementAnalyzer(App):
         print(f'Selected Item in listview: {self.listsel}, type: {type(self.listsel)}')
 
         ct = self.dr[self.dr.PRED_CAT == self.listsel]
+
+        # Creates dataframe of the selected entity from the list
         xt = ct.copy()
         ct.DR = ct.DR.astype(str)
         ct.CR = ct.CR.astype(str)
@@ -392,12 +398,12 @@ class BankStatementAnalyzer(App):
 
         lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total DR: {dr_sum}',
                             bg='lightpink', align='right', justify='right')
-
+        print(f'ct dataframe from list selection:\n{xt}')
         res = []
         for column in ct.columns:
             li = ct[column].tolist()
             res.append(li)
-
+        print(f'res list: {res}')
         res.insert(0, ['DATE', 'PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
         self.table2 = C.create_table(self.frame_right_2, res, 80, 97, 2, 4,
                                      align='center', justify='center', display='block')
