@@ -204,7 +204,6 @@ class BankStatementAnalyzer(App):
                                         command=lambda x: self.register_ok_clicked())
 
 
-
     def reg_on_enter_username(self, w, val):
         self.registry_info['username'] = val
         print(val)
@@ -324,12 +323,14 @@ class BankStatementAnalyzer(App):
                                             display='block')
                 # self.frame_right.append(self.table)
 
-                self.btn_graph = C.create_button(self.frame_left, 7, 30, 42, 17, bg='yellowgreen',
+                self.btn_graph = C.create_button(self.frame_left, 7, 30, 35, 17, bg='yellowgreen',
                                                  command=lambda x: self.create_graph(), text='VIEW EXPENSES')
                 with self.update_lock:
                     self.progress.set_value(0)
                     self.set_notification('DONE', bar=2)
 
+                self.btn_analyze = C.create_button(self.frame_left, 7, 30, 68, 17, bg='cornflowerblue',
+                                                   text='ANALYTICS', command=lambda x: self.clicked_analytics())
 
             else:
                 self.set_notification('Sorry. This Bank is currently not supported.')
@@ -407,6 +408,10 @@ class BankStatementAnalyzer(App):
                                      align='center', justify='center', display='block')
         self.table2.style['overflow'] = 'overflow'
         self.frame_right_2.append(self.table2)
+
+
+    def clicked_analytics(self):
+        self.frame_right_2.empty()
 
 
 
