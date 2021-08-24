@@ -188,7 +188,6 @@ class BankStatementAnalyzer(App):
             self.lgt.set_text("")
 
 
-
     def register_clicked(self):
         print(f'Register Clicked')
         self.frame_login_register.empty()
