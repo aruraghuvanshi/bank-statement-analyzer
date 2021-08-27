@@ -125,7 +125,7 @@ class Creator:
 
 
     def create_table(self, frame, lst, H, W, L, T, bg='seashell', fg='black',
-                      align='center', justify='space-around',
+                      align='center', justify='space-around', font_size='12px',
                       display='inline', position='absolute', px=False):
 
         btn = tk.Table.new_from_list(content=lst)
@@ -141,7 +141,7 @@ class Creator:
             btn.css_width = str(f'{W}%')
             btn.css_left = str(f'{L}%')
             btn.css_top = str(f'{T}%')
-
+        btn.css_font_size = font_size
         btn.css_background_color = bg
         btn.css_color = fg
         btn.css_align_self = align
