@@ -1,16 +1,29 @@
 from remi import App, start
-# from remigui import GUI
 import os
 import remi.gui as tk
 from creators import C
 import datetime
-from axis_bank_statement_analyzer_trainer_v2 import load_test_data, ingest_test_pdf
+# from axis_bank_statement_analyzer_trainer_v2 import load_test_data, ingest_test_pdf
 from getbankdata import GetBankData
 import matplotlib.pyplot as plt
 from PIL import Image
 import pandas as pd
 from user import User
 from threading import Thread
+from run_saved_model import load_test_data
+'''
+USE MAIN.PY for running.
+THIS IS WIP
+
++ Retrain Model
+- Swap DR with CR in Kotak
+- Check Dropdown of Banklist feasibility and add Kotak
++ Modify code to add new frame for filtering options 
++ Add Filters to view graphs on transaction TYPES and PRED_CAT
++ Use the choosefile to choose file instead of hardcoded path
+
+'''
+
 
 
 class BankStatementAnalyzer(App):
@@ -25,12 +38,7 @@ class BankStatementAnalyzer(App):
         self.model_name = 'model_ann_98.h5'
         self.cv_name = 'vectorizer.sav'
         self.le_name = 'target_label_encoder.sav'
-        self.frame_header_color = 'deepskyblue'
-        self.frame_left_color = 'ivory'
-        self.frame_footer_left_color = 'honeydew'
-        self.frame_right_color = 'whitesmoke'
-        self.frame_right_2_color = 'seashell'
-        self.frame_login_register_color = 'azure'
+
 
     def idle(self):
         pass
@@ -41,6 +49,7 @@ class BankStatementAnalyzer(App):
         self.dr = pd.DataFrame()
         self.listview = tk.ListView()
         self.frame_left = tk.Container()
+        self.frame_filter = tk.Container()
         self.frame_right = tk.Container()
         self.frame_header = tk.Container()
         self.frame_right_2 = tk.Container()
@@ -54,6 +63,7 @@ class BankStatementAnalyzer(App):
         self.window.css_position = "absolute"
         self.frame_header_color = 'deepskyblue'
         self.frame_left_color = 'ivory'
+        self.frame_filter_color = 'whitesmoke'
         self.frame_footer_left_color = 'honeydew'
         self.frame_right_color = 'whitesmoke'
         self.frame_right_2_color = 'seashell'
@@ -61,6 +71,7 @@ class BankStatementAnalyzer(App):
         self.selected_bank = []
         self.registry_info = {}
         self.login_info = {}
+        self.dt = pd.DataFrame()
         self.frame_header = C.create_container(self.window, 10, 90, 0, 0)
         self.frame_header.css_background_color = self.frame_header_color
         self.frame_header.css_top = "0%"
@@ -70,8 +81,12 @@ class BankStatementAnalyzer(App):
 
         self.progress = C.create_progress(self.window, 1, 100, 0, 99, a=0, b=100)
 
-        self.frame_left = C.create_container(self.window, 75, 20, 0, 10)
+        self.frame_left = C.create_container(self.window, 25, 20, 0, 10)
         self.frame_left.css_background_color = self.frame_left_color
+
+        self.frame_filter = C.create_container(self.window, 50, 20, 0, 35)
+        self.frame_filter.css_background_color = self.frame_filter_color
+
         self.frame_right = C.create_container(self.window, 75, 35, 21, 10)
         self.frame_right.css_background_color = self.frame_right_color
         self.frame_right_2 = C.create_container(self.window, 75, 33, 57, 10)
@@ -161,16 +176,16 @@ class BankStatementAnalyzer(App):
                                              bg='lightgreen')
 
             # --------------------- FILE UPLOADER & SELECTOR -------------------------------------- ]
-            upl = C.create_uploader(self.frame_left, 7, 30, 2, 4, filename='./files/')
+            upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./files/')
             upl.onsuccess.do(self.fileupload_successful)
             upl.onfailed.do(self.fileupload_failed)
 
             # --------------------- BUTTONS --------------------------------------------------------- ]
-            self.btn_analyze = C.create_button(self.frame_left, 7, 30, 2, 13, bg='cornflowerblue',
+            self.btn_analyze = C.create_button(self.frame_left, 15, 30, 2, 28, bg='cornflowerblue',
                                                command=lambda x: self.run_analyzer(), text='ANALYZE')
 
             # --------------------- DROPDOWNS --------------------------------------------------------- ]
-            self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 7, 65, 35, 4,
+            self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 15, 65, 35, 4,
                                             bg='powderblue', fg='white', command=self.drop_down_changed)
 
 
@@ -294,41 +309,63 @@ class BankStatementAnalyzer(App):
     def run_analysis(self):
 
         try:
-            if self.selected_bank[-1] == 'Axis Bank':
+            if self.selected_bank[-1] == 'Axis Bank' or self.selected_bank[-1] == 'Kotak Mahindra Bank':
 
                 with self.update_lock:
-                    self.progress.set_value(20)
-                    self.set_notification('Analyzing. Please wait...', bar=2)
+                    self.progress.set_value(10)
+                    self.set_notification('Initializing. Please wait...', bar=2)
                     import time
-                time.sleep(2)
+                time.sleep(1)
 
-                testpdf = 'files\\Aru Axis 1st Apr 2020 - 31st Mar 2021.pdf'
-                # testpdf = 'files\\AruAxis_17_18.pdf'
+                # testpdf = r'Resources/aru_kotak_bank.pdf'
+                testpdf = r'Resources/axis_test_bank.pdf'
                 model_name = 'models\\model_ann_98.h5'
                 cv_name = 'models\\vectorizer.sav'
                 le_name = 'models\\label_encoder.sav'
 
+                from time import time
+                t1 = time()
+
+                with self.update_lock:
+                    self.progress.set_value(25)
+                    self.set_notification('Digitizing Document & OCR Extraction...', bar=2)
+                G = GetBankData(testpdf)
+                G.clear_directory()
+                img = G.convert_pdf_image()
+                name = G.get_bank_name()
+
                 with self.update_lock:
                     self.progress.set_value(50)
                     self.set_notification('Running Neural Network...', bar=2)
-                df, testcsv = ingest_test_pdf(testpdf)         # df from pdf-csv conversion
+                dx = G.analyze_statement_format()
+
+                if G.bank_name == 'Axis Bank':
+                    dxx = G.preprocess_ingest_axis_pdf()
+                elif G.bank_name == 'Kotak Mahindra Bank':
+                    dxx = G.preprocess_ingest_kotak_pdf()
+                else:
+                    print('Bank Not Supported')
+
+                dp = G.preprocess_overall_bankdata()
+                G.clear_directory(allfiles=False)
+                print(f'\033[0;32mOutput file created in {round(time() - t1, 1)}s.\033[0m')
 
                 with self.update_lock:
-                    self.progress.set_value(80)
+                    self.progress.set_value(90)
                     self.set_notification('Rendering results...', bar=2)
-                dt, self.df = load_test_data(testcsv, model_name, cv_name, le_name)
+                self.dt, self.df = load_test_data(model_name, cv_name, le_name)    # Loading master_final as default arg
 
-                self.table = C.create_table(self.frame_right, dt, 91, 97, 2, 4,
+                self.table = C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                             align='left', justify='left',
                                             display='block')
 
-                self.btn_graph = C.create_button(self.frame_left, 7, 30, 35, 13, bg='yellowgreen',
+                self.btn_graph = C.create_button(self.frame_left, 15, 30, 35, 28, bg='yellowgreen',
                                                  command=lambda x: self.create_graph(), text='VIEW EXPENSES')
                 with self.update_lock:
                     self.progress.set_value(0)
                     self.set_notification('DONE', bar=2)
 
-                self.btn_analyze = C.create_button(self.frame_left, 7, 30, 68, 13, bg='cornflowerblue',
+                self.btn_analyze = C.create_button(self.frame_left, 15, 30, 68, 28, bg='cornflowerblue',
                                                    text='ANALYTICS', command=lambda x: self.clicked_analytics())
 
             else:
@@ -338,8 +375,14 @@ class BankStatementAnalyzer(App):
             self.set_notification('Please Select Bank from the Dropdown list.')
 
 
+
     def create_graph(self):
-        print('In create Graph')
+        self.frame_right.empty()
+
+        C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
+                                    align='left', justify='left',
+                                    display='block')
+
         def expense_by_category(df, cat='PRED_CAT', exception=False,
                                 exceptvalue='Woodstock', exceptvalue2='Credit'):
 
@@ -367,22 +410,19 @@ class BankStatementAnalyzer(App):
         items = self.df.PRED_CAT.unique().tolist()
         print(f'df.PRED_CAT items: {items}')
 
-        lblv = C.create_label(self.frame_left, 4, 100, 0, 36, text='>>  Filter by:', bg='khaki')
-
-        self.listview = C.create_listview(self.frame_left, items, 57, 60, 2, 39,
-                                          display='')
+        lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
+        self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
         self.listview.onselection.do(self.list_view_on_selected)
 
         expense_by_category(self.df, cat='PRED_CAT', exception=False,
                             exceptvalue='Woodstock', exceptvalue2='Credit')
-        print('Running expense_by_category, image should open')
 
 
 
     def list_view_on_selected(self, w, selected_item_key):
         """ The selection event of the listView, returns a key of the clicked event.
-            You can retrieve the item rapidly
-        """
+            You can retrieve the item rapidly """
+
 
         self.listsel = self.listview.children[selected_item_key].get_text()
         print(f'Selected Item in listview: {self.listsel}, type: {type(self.listsel)}')
@@ -397,7 +437,7 @@ class BankStatementAnalyzer(App):
 
         dr_sum, cr_sum = sum(xt.DR), sum(xt.CR)
 
-        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total DR: {dr_sum}',
+        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Amount: {dr_sum}',
                             bg='lightpink', align='right', justify='right')
         print(f'ct dataframe from list selection:\n{xt}')
         res = []
@@ -413,8 +453,85 @@ class BankStatementAnalyzer(App):
 
 
     def clicked_analytics(self):
+
+        '''
+        This will create the list for Analytics button.
+
+        '''
+
         self.frame_right_2.empty()
-        self.img = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 96, 2, 2)
+        self.frame_filter.empty()
+        C.create_image(self.frame_right_2, '/path:expenses.png', 50, 96, 2, 2)
+        C.create_image(self.frame_right_2, '/path:expenses_type.png', 50, 96, 2, 55)
+
+        print(f'self.df in clicked analytics:\n {self.df}')
+        items = self.df.TYPE.unique().tolist()
+        print(f'df.TYPE items: {items}')
+
+        lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
+        self.listview_2 = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
+        self.listview_2.onselection.do(self.list_view_on_selected_2)
+
+
+    def list_view_on_selected_2(self, w, selected_item_key_2):
+
+        '''
+        This will create the list view for analytics.
+        '''
+
+        def expense_by_type(df, cat='TYPE'): #, exception=False,
+                                # exceptvalue='Woodstock', exceptvalue2='Credit'):
+
+            print(f'self.df:\n{self.df}')
+
+            dk = df[df.DR > 0]
+            print(f'dk: \n {dk}')
+
+            typedf = dk.groupby(cat).sum()['DR'].plot(kind='bar', figsize=(15, 10),
+                                                          color='lightskyblue', fontsize=14,
+                                                          title='Expenses by Type')
+            typedf.set_xlabel('Category of Expense', fontsize=20)
+            typedf.set_ylabel('Amount in Rupees', fontsize=20)
+            typedf.set_title('Expenses by Type', fontsize=20)
+            print(f'typedf: \n {typedf}')
+
+            # with self.update_lock:
+            #     plt.show()                          #ValueError: signal only works in main thread
+            plt.savefig('resx/expenses_type.png')
+
+        self.frame_right_2.empty()
+        self.listsel_2 = self.listview_2.children[selected_item_key_2].get_text()
+        print(f'Selected Item in listview_2: {self.listsel_2}, type: {type(self.listsel_2)}')
+
+        ct = self.df[self.df.TYPE == self.listsel_2]
+
+        # Creates dataframe of the selected entity from the list
+        xt = ct.copy()
+        ct.DR = ct.DR.astype(str)
+        ct.CR = ct.CR.astype(str)
+        ct = ct.T
+
+        dr_sum_2, cr_sum_2 = sum(xt.DR), sum(xt.CR)
+
+        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Amount: {dr_sum_2}',
+                            bg='lightpink', align='right', justify='right')
+        print(f'ct dataframe from list selection:\n{xt}')
+        res2 = []
+        for column in ct.columns:
+            li = ct[column].tolist()
+            res2.append(li)
+        print(f'res2 list: {res2}')
+
+        res2.insert(0, ['DATE', 'PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
+        self.table3 = C.create_table(self.frame_right_2, res2, 80, 97, 2, 4,
+                                     align='center', justify='center', display='block')
+        self.table3.style['overflow'] = 'overflow'
+        self.frame_right_2.append(self.table3)
+
+        self.frame_right.empty()
+        expense_by_type(self.df)
+        C.create_image(self.frame_right, '/path:expenses_type.png', 60, 96, 2, 2)
+
 
 
 

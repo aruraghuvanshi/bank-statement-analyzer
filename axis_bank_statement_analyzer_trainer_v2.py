@@ -19,8 +19,6 @@ import tabula
 
 
 
-
-
 pd.options.display.max_rows = 500
 pd.options.display.max_columns = 40
 warnings.filterwarnings('ignore')
@@ -28,14 +26,6 @@ pd.options.display.max_rows = 500
 pd.options.display.max_columns = 40
 warnings.filterwarnings('ignore')
 
-
-# from pdf_to_excel import pdf_to_excel
-# c, xl = pdf_to_excel('AruAxis_test_march.pdf', 'AruAxis_test_march')
-
-# print(f'type(c): {type(c)}')
-# print(f'type(xl): {type(xl)}')
-# print(f'xl: {xl}')
-# org = f'{xl}.csv'
 
 def ingest_test_pdf(testfile):
 
