@@ -14,6 +14,7 @@ from user import User
 from threading import Thread
 from run_saved_model import load_test_data
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 pd.options.display.max_rows = 500
 pd.options.display.max_columns = 40
@@ -199,9 +200,12 @@ class BankStatementAnalyzer(App):
             C.create_label(self.frame_login_register, 10, 75, 20, 35,
                            text=f"Logged In.", bg='azure')
             user = self.login_info['username']
+
             U = User(user)
+
             self.lgt = C.create_label(self.frame_login_register, 10, 75, 20, 35,
                            text=f"Session: {U.get_name()}", bg='azure')
+
             self.logout_btn = C.create_button(self.window, 3, 7, 92, 1, text='Logout',
                                              command=lambda x: self.logout_clicked(),
                                              bg='lightgreen')
@@ -227,6 +231,8 @@ class BankStatementAnalyzer(App):
         self.frame_right.empty()
         self.frame_right_2.empty()
         self.frame_footer_left.empty()
+        self.frame_filter.empty()
+
         self.login_btn = C.create_button(self.window, 3, 7, 92, 1, text='Login',
                                          command=lambda x: self.login_clicked())
         self.register_btn = C.create_button(self.window, 3, 7, 92, 6, text='Register',
@@ -386,7 +392,7 @@ class BankStatementAnalyzer(App):
                     self.progress.set_value(90)
                     self.set_notification('Rendering results...', bar=2)
                 self.dt, self.df = load_test_data(model_name, cv_name, le_name)    # Loading master_final as default arg
-                print(f'self.df in run_analysis on load test data:\n {self.df}')
+
                 self.dc = self.df
                 self.table = C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                             align='left', justify='left',
@@ -412,7 +418,6 @@ class BankStatementAnalyzer(App):
     def create_graph(self):
         self.frame_right.empty()
         self.frame_right_2.empty()
-
 
         C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                     align='left', justify='left',
@@ -440,7 +445,6 @@ class BankStatementAnalyzer(App):
 
 
         items = self.df.PRED_CAT.unique().tolist()
-        print(f'df.PRED_CAT items: {items}')
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
@@ -454,7 +458,6 @@ class BankStatementAnalyzer(App):
     def list_view_on_selected(self, w, selected_item_key):
         """ The selection event of the listView, returns a key of the clicked event.
             You can retrieve the item rapidly """
-
 
         self.listsel = self.listview.children[selected_item_key].get_text()
         print(f'Selected Item in listview: {self.listsel}, type: {type(self.listsel)}')
@@ -471,12 +474,12 @@ class BankStatementAnalyzer(App):
 
         lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Debit Amount: {round(dr_sum,0)}',
                             bg='lightpink', align='right', justify='right')
-        print(f'ct dataframe from list selection:\n{xt}')
+
         res = []
         for column in ct.columns:
             li = ct[column].tolist()
             res.append(li)
-        print(f'res list: {res}')
+
         res.insert(0, ['DATE', 'PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
         self.table2 = C.create_table(self.frame_right_2, res, 80, 97, 2, 4,
                                      align='center', justify='center', display='block')
@@ -484,19 +487,18 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.append(self.table2)
 
 
+
     def clicked_analytics(self):
 
         '''
         This will create the list for Analytics button.
-
         '''
 
         self.create_additional_graph()
         self.frame_right_2.empty()
         self.frame_filter.empty()
         self.frame_right_2.css_background_color = 'white'
-        # self.img1 = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 100, 0, 0)
-        # self.img2 = C.create_image(self.frame_right_2, '/path:expenses_type_additional.png', 50, 100, 0, 50)
+
         try:
             self.img1 = tk.Image(tk.load_resource("./resx/expenses.png"), width="100%", height="50%")
         except Exception as e:
@@ -509,7 +511,6 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.append(self.img2)
 
         items = self.df.TYPE.unique().tolist()
-
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview_2 = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
@@ -531,13 +532,12 @@ class BankStatementAnalyzer(App):
 
         ct = self.df[self.df.TYPE == self.listsel_2]
         self.dct = ct
+
         # Creates dataframe of the selected entity from the list
         xt = ct.copy()
         ct.DR = ct.DR.astype(str)
         ct.CR = ct.CR.astype(str)
-
         ct = ct.T
-
         dr_sum_2, cr_sum_2 = sum(xt.DR), sum(xt.CR)
 
         lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Debit Amount: {round(dr_sum_2,0)}',
@@ -547,7 +547,6 @@ class BankStatementAnalyzer(App):
         for column in ct.columns:
             li = ct[column].tolist()
             res2.append(li)
-        print(f'res2 list: {res2}')
 
         res2.insert(0, ['DATE', 'PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
         self.table3 = C.create_table(self.frame_right_2, res2, 80, 97, 2, 4,
@@ -557,7 +556,7 @@ class BankStatementAnalyzer(App):
         self.T.join()
         self.frame_right.empty()
         self.graph_by_filter_2()
-        # self.cycle_graphs()
+
 
 
     def graph_by_filter_2(self):

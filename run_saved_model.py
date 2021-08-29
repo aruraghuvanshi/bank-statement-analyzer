@@ -21,8 +21,7 @@ def load_test_data(model_name, cv_name, le_name, testfile=r'Output/master_output
 
     print(f'\033[0;32mFile model running on: {testfile}\033[0m\n')
     dt = pd.read_csv(testfile, na_values=[' '])
-    print(f'master_output df: \n{dt.head()}')
-    print(f'master_output df after drop typ: \n{dt.head()}')
+
     nn = load_model(model_name)
     cv = pickle.load(open(cv_name, 'rb'))
     le = pickle.load(open(le_name, 'rb'))
@@ -37,8 +36,7 @@ def load_test_data(model_name, cv_name, le_name, testfile=r'Output/master_output
     dt['PRED_CAT'] = nn.predict_classes(Ucv)
     dt['PRED_CAT'] = le.inverse_transform(dt['PRED_CAT'])
     dt.DATE = dt.DATE.astype(str)
-    print(f'Predicted Cateogry df: \n {dt.PRED_CAT}')
-    # dt.drop(0, inplace=True)
+
     dx = dt.copy()
     dt.DR = dt.DR.astype(str)
     dt.CR = dt.CR.astype(str)
@@ -50,5 +48,5 @@ def load_test_data(model_name, cv_name, le_name, testfile=r'Output/master_output
         res.append(li)
 
     res.insert(0, ['DATE','PARTICULARS', 'DR', 'CR', 'TYPE', 'PREDICTED CATEGORY'])
-    print(f'Predicted DF (res): \n {res}')
+
     return res, dx

@@ -93,13 +93,11 @@ class GetBankData:
         Returns objects at memory location. Can be accessed by indexing return.
         ex. >>> img = convert_pdf_image(pdf_file)
         '''
-        print(f'self.pdf_file: {self.pdf_file}')
+
         print(f'> Converting {self.pdf_file} to PNG.')
         images = convert_from_path(self.pdf_file, poppler_path=r'E:\poppler-0.68.0\bin')
-        #         for i in range(len(images)):
-        #             images[i].save(f'Input/ImageFiles/page{i:02}.png', 'PNG')
         images[0].save(f'Input\\ImageFiles\\page00.png', 'PNG')
-        #         print(f'> Number of generated Image files: {len(images)}\n')
+
         return images
 
 
@@ -137,7 +135,7 @@ class GetBankData:
 
         dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True)
         tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all')
-        #         self.dx = tabula.read_pdf(self.output_csv_name, pages='all', stream=True, guess=False)
+
         try:
             self.dx = pd.read_csv(self.output_csv_name)
             print(f"> \033[0;34mReading Extraction\033[0m (Try)...")
