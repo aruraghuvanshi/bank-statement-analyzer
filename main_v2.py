@@ -25,9 +25,10 @@ THIS IS WIP
 + Retrain Model
 - Swap DR with CR in Kotak
 - Check Dropdown of Banklist feasibility and add Kotak
++ Add HDFC to the bank preprocessing
 - Modify code to add new frame for filtering options 
 - Add Filters to view graphs on transaction TYPES and PRED_CAT
-+ Use the choosefile to choose file instead of hardcoded path
+- Use the choosefile to choose file instead of hardcoded path
 + Do the haslib for password or pickling
 
 
@@ -115,6 +116,7 @@ class BankStatementAnalyzer(App):
 
         self.img1 = tk.Image()
         self.img = tk.Image('', height=300, margin='1px')
+        self.upl =''
 
         # ----------------------------------------- LABELS ---------------------------------------------------------- ]
 
@@ -213,9 +215,9 @@ class BankStatementAnalyzer(App):
                                              bg='lightgreen')
             self.clear_directory()
 
-            upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./files/')
-            upl.onsuccess.do(self.fileupload_successful)
-            upl.onfailed.do(self.fileupload_failed)
+            self.upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./Input PDF/',
+                                    command_succ=self.fileupload_successful,
+                                    command_fail=self.fileupload_failed)
 
             self.btn_analyze = C.create_button(self.frame_left, 15, 30, 2, 28, bg='cornflowerblue',
                                                command=lambda x: self.run_analyzer(), text='ANALYZE')
@@ -320,15 +322,17 @@ class BankStatementAnalyzer(App):
 
 
     def fileupload_successful(self, w, filename):
-        lbl_succ = C.create_label(self.frame_left, 7, 98, 2, 15, text=f'{filename} uploaded.',
-                                  display='flex-end', align='center', justify='space-around')
-        lbl_succ.css_background_color = 'lightgreen'
+        self.set_notification(f'{filename} uploaded.')
+        self.filename = filename
+        print(f'File that was uploaded: \033[0;34m{self.filename}\033[0m')
         return filename
 
 
     def fileupload_failed(self, w, filename):
-        lbl_fail = C.create_label(self.frame_left, 5,60,40,1, text=f'{filename} Upload Failed')
-        lbl_fail.css_background_color = self.frame_left_color
+        # lbl_fail = C.create_label(self.frame_left, 5,60,40,1, text=f'{filename} Upload Failed')
+        # lbl_fail.css_background_color = self.frame_left_color
+        self.set_notification(f'{filename} upload failed.')
+        self.filename = filename
 
 
     def set_notification(self, text, bar=1):
@@ -365,7 +369,8 @@ class BankStatementAnalyzer(App):
                     import time
                 time.sleep(1)
 
-                testpdf = r'Resources/axis_test_bank.pdf'
+                testpdf = f'Input PDF\\{self.filename}'
+                print(f'File being processed: \033[0;34m{testpdf}\033[0m')
                 model_name = 'models\\model_ann_98.h5'
                 cv_name = 'models\\vectorizer.sav'
                 le_name = 'models\\label_encoder.sav'

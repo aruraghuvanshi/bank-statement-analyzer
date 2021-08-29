@@ -63,10 +63,11 @@ class Creator:
 
 
     def create_uploader(self, frame, H, W, L, T, filename=None, bg='navyblue', fg='white',
-                      align='center', justify='space-around',
+                      align='center', justify='space-around', command_succ=None, command_fail=None,
                       display='inline', position='absolute', px=False):
 
         btn = tk.FileUploader(savepath=filename)
+
         if px:
             btn.variable_name = 'upl'
             btn.css_height = str(f'{H}px')
@@ -89,6 +90,8 @@ class Creator:
         btn.css_position = position
         btn.css_justify_content = justify
         frame.append(btn)
+        btn.onsuccess.do(command_succ)
+        btn.onfailed.do(command_fail)
         return btn
 
 
@@ -298,7 +301,7 @@ class Creator:
             btn = tk.Input()
             btn.style['background-color'] = 'lightgray'
 
-        # btn.set_text('')
+
         if px:
             btn.variable_name = 'drp'
             btn.css_height = str(f'{H}px')
