@@ -1,3 +1,5 @@
+import numpy as np
+import random
 from remi import App, start
 import os
 import remi.gui as tk
@@ -12,9 +14,10 @@ from user import User
 from threading import Thread
 from run_saved_model import load_test_data
 
-sns.set()
+
 pd.options.display.max_rows = 500
 pd.options.display.max_columns = 40
+
 
 '''
 USE MAIN.PY for running.
@@ -28,7 +31,6 @@ THIS IS WIP
 + Use the choosefile to choose file instead of hardcoded path
 
 '''
-
 
 
 class BankStatementAnalyzer(App):
@@ -103,6 +105,7 @@ class BankStatementAnalyzer(App):
         self.frame_login_register = C.create_container(self.window, 30, 10, 90, 0)
         self.frame_login_register.css_background_color = self.frame_login_register_color
 
+        self.img1 = tk.Image()
 
         # --------------------- LABELS ---------------------------------------------------------- ]
 
@@ -415,28 +418,25 @@ class BankStatementAnalyzer(App):
                                     align='left', justify='left',
                                     display='block')
 
-        def expense_by_category(df, cat='PRED_CAT', exception=False,
+        def expense_by_category(cat='PRED_CAT', exception=False,
                                 exceptvalue='Woodstock', exceptvalue2='Credit'):
 
-            print(f'self.df:\n{self.df}')
             if exception:
                 print('in exception to filter exception values')
-                self.dr = df[(df[cat] != exceptvalue) & (df[cat] != exceptvalue2)]
+                self.dr = self.df[(self.df[cat] != exceptvalue) & (self.df[cat] != exceptvalue2)]
             else:
-                self.dr = df[df.DR > 0]
-                print('in exception else (normal)')
+                self.dr = self.df[self.df.DR > 0]
+                print('In exception else of def expense by category. This is normal.')
 
-            catdf = self.dr.groupby(cat).sum()['DR'].plot(kind='bar', figsize=(15, 10),
-                                                          color='yellowgreen', fontsize=14,
-                                                          title='Expenses by Category')
-            catdf.set_xlabel('Category of Expense', fontsize=20)
-            catdf.set_ylabel('Amount in Rupees', fontsize=20)
-            catdf.set_title('Expenses by Category', fontsize=20)
-            print(f'catdf: \n {catdf}')
+            ff = self.dr.groupby(cat).sum()['DR']
 
-            # with self.update_lock:
-            #     plt.show()                          #ValueError: signal only works in main thread
-            plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=-1, dpi=300)
+            fig = plt.subplots(figsize=(15, 9))
+            sns.barplot(ff.index, ff.values, palette='Greens')
+            sns.set(font_scale=1.2)
+            plt.xlabel('CATEGORY')
+            plt.ylabel('Amount')
+            plt.title('EXPENSES BY CATEGORY')
+            plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
 
 
         items = self.df.PRED_CAT.unique().tolist()
@@ -446,7 +446,7 @@ class BankStatementAnalyzer(App):
         self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
         self.listview.onselection.do(self.list_view_on_selected)
 
-        expense_by_category(self.df, cat='PRED_CAT', exception=False,
+        expense_by_category(cat='PRED_CAT', exception=False,
                             exceptvalue='Woodstock', exceptvalue2='Credit')
 
 
@@ -495,12 +495,21 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.empty()
         self.frame_filter.empty()
         self.frame_right_2.css_background_color = 'white'
-        self.img1 = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 100, 0, 0)
-        self.img2 = C.create_image(self.frame_right_2, '/path:expenses_type_additional.png', 50, 100, 0, 50)
+        # self.img1 = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 100, 0, 0)
+        # self.img2 = C.create_image(self.frame_right_2, '/path:expenses_type_additional.png', 50, 100, 0, 50)
+        try:
+            self.img1 = tk.Image(tk.load_resource("./resx/expenses.png"), width="100%", height="50%")
+        except Exception as e:
+            print(f'In Exception: {e}; Expenses Graph missing')
 
-        print(f'self.df in clicked analytics:\n {self.df.head()}')
+        self.img2 = tk.Image(tk.load_resource("./resx/expenses_type_additional.png"),
+                             width="100%", height="50%", top="50%")
+
+        self.frame_right_2.append(self.img1)
+        self.frame_right_2.append(self.img2)
+
         items = self.df.TYPE.unique().tolist()
-        print(f'df.TYPE items: {items}')
+
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview_2 = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
@@ -552,14 +561,17 @@ class BankStatementAnalyzer(App):
 
 
     def graph_by_filter_2(self):
-        print(f'self.key2 in graph by filter 2: {self.key2}')
-        colormap = ['lightgreen', 'lightpink', 'beige', 'aquamarine']
-        dk = self.dct[self.dct.TYPE == self.key2]
-        print(f'dk: \n {dk.head()}')
-        dk.PRED_CAT.value_counts().plot(kind='bar', figsize=(6, 6), xlabel='TYPE',
-                                         ylabel='COUNT', title=f'TRANSACTIONS BY {self.key2}',
-                                         fontsize=12, color=colormap)
 
+        dk = self.dct[self.dct.TYPE == self.key2]
+
+        palette = ['PuOr', 'Reds', 'Greens', 'coolwarm', 'autumn']
+        ch = random.choice(palette)
+        fig = plt.subplots(figsize=(15, 9))
+        sns.countplot(dk.PRED_CAT, label='HEY', palette=ch)
+        sns.set(font_scale=1.4)
+        plt.xlabel('Transaction Type')
+        plt.ylabel('Count')
+        plt.title(f'TRANSACTIONS BY {self.key2}')
         plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
 
         self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%")
@@ -569,12 +581,12 @@ class BankStatementAnalyzer(App):
 
     def create_additional_graph(self):
 
-        print(f'type self.dx: {type(self.dc)}')
-        print(f'self.dc in create additional graph \n: {self.dc.head()}')
-        colormap = ['black', 'maroon', 'purple', 'darkblue']
-        self.dc.TYPE.value_counts().plot(kind='bar',figsize=(15, 10), xlabel='TYPE',
-                                         ylabel='COUNT', title='TRANSACTIONS BY TYPE',
-                                        fontsize=12, color=colormap)
+        fig2 = plt.subplots(figsize=(15, 9))
+        sns.countplot(self.dc.TYPE, palette='Blues')
+        sns.set(font_scale=1.2)
+        plt.xlabel('Transaction Type')
+        plt.ylabel('Count')
+        plt.title(f'TRANSACTIONS BY TYPES')
 
         plt.savefig(r'resx/expenses_type_additional.png', bbox_inches='tight', pad_inches=0.05)
         plt.clf()
