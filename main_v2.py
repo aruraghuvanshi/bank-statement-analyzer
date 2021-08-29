@@ -1,4 +1,3 @@
-import numpy as np
 import random
 from remi import App, start
 import os
@@ -53,11 +52,10 @@ class BankStatementAnalyzer(App):
 
 
     def main(self):
-        self.img = tk.Image('', height=300, margin='1px')
 
         self.date = datetime.date.today().strftime('%d-%m-%Y')
         self.time = datetime.datetime.now().time()
-        self.dr = pd.DataFrame()
+
         self.listview = tk.ListView()
         self.frame_left = tk.Container()
         self.frame_filter = tk.Container()
@@ -66,12 +64,14 @@ class BankStatementAnalyzer(App):
         self.frame_right_2 = tk.Container()
         self.master_user = pd.DataFrame()
         self.window = tk.Container()
+
         self.window.css_background_color = "azure"
         self.window.css_height = "100%"
         self.window.css_width = "100%"
         self.window.css_left = "0.0px"
         self.window.css_top = "0.0px"
         self.window.css_position = "absolute"
+
         self.frame_header_color = 'deepskyblue'
         self.frame_left_color = 'ivory'
         self.frame_filter_color = 'whitesmoke'
@@ -79,19 +79,21 @@ class BankStatementAnalyzer(App):
         self.frame_right_color = 'whitesmoke'
         self.frame_right_2_color = 'seashell'
         self.frame_login_register_color = 'azure'
+
         self.selected_bank = []
         self.registry_info = {}
         self.login_info = {}
+
         self.dt = pd.DataFrame()
         self.dx = pd.DataFrame()
+        self.dr = pd.DataFrame()
+
         self.frame_header = C.create_container(self.window, 10, 90, 0, 0)
         self.frame_header.css_background_color = self.frame_header_color
         self.frame_header.css_top = "0%"
 
         self.frame_footer_left = C.create_container(self.window, 12, 20, 0, 87)
         self.frame_footer_left.css_background_color = self.frame_footer_left_color
-
-        self.progress = C.create_progress(self.frame_footer_left, 5, 100, 0, 95, a=0, b=100)
 
         self.frame_left = C.create_container(self.window, 25, 20, 0, 10)
         self.frame_left.css_background_color = self.frame_left_color
@@ -101,14 +103,19 @@ class BankStatementAnalyzer(App):
 
         self.frame_right = C.create_container(self.window, 75, 35, 21, 10)
         self.frame_right.css_background_color = self.frame_right_color
+
         self.frame_right_2 = C.create_container(self.window, 75, 33, 57, 10)
         self.frame_right_2.css_background_color = self.frame_right_2_color
+
         self.frame_login_register = C.create_container(self.window, 30, 10, 90, 0)
         self.frame_login_register.css_background_color = self.frame_login_register_color
 
-        self.img1 = tk.Image()
+        self.progress = C.create_progress(self.frame_footer_left, 5, 100, 0, 95, a=0, b=100)
 
-        # --------------------- LABELS ---------------------------------------------------------- ]
+        self.img1 = tk.Image()
+        self.img = tk.Image('', height=300, margin='1px')
+
+        # ----------------------------------------- LABELS ---------------------------------------------------------- ]
 
         lbl_header = C.create_label(self.frame_header, 20, 25, 10, 30, text='BANK STATEMENT ANALYZER',
                                     bg='deepskyblue', fg='white')
@@ -126,13 +133,6 @@ class BankStatementAnalyzer(App):
         self.notif_1 = C.create_label(self.frame_footer_left, 6, 100, 0, 10, text='')
         self.notif_2 = C.create_label(self.frame_footer_left, 6, 100, 0, 60, text='')
 
-        # --------------------- APPENDS --------------------------------------------------------- ]
-        # self.window.append(self.frame_right)
-        # self.window.append(self.frame_right_2)
-        # self.window.append(self.frame_left)
-        # self.window.append(self.frame_header)
-        # self.window.append(self.frame_footer_left)
-
         self.login_btn = C.create_button(self.window, 3, 7, 92, 1, text='Login',
                                          command=lambda x: self.login_clicked())
         self.register_btn = C.create_button(self.window, 3, 7, 92, 6, text='Register',
@@ -140,7 +140,7 @@ class BankStatementAnalyzer(App):
 
         return self.window
 
-    # ====================== FUNCTIONS ============================================================ ]
+    # ======================================== FUNCTIONS ============================================================ ]
 
 
     def clear_directory(self, allfiles=True):
@@ -161,6 +161,7 @@ class BankStatementAnalyzer(App):
 
 
     def login_clicked(self):
+
         self.frame_left.empty()
         print(f'Login Button pressed')
         self.frame_login_register.empty()
@@ -179,10 +180,10 @@ class BankStatementAnalyzer(App):
 
 
     def login_ok_clicked(self):
+
         print(f'Ok clicked on Login Button')
         self.frame_login_register.empty()
 
-        # Do the username/password match here
         df = pd.read_csv('user_registration_info.csv')
         df.drop('Unnamed: 0', inplace=True, axis=1)
 
@@ -211,18 +212,16 @@ class BankStatementAnalyzer(App):
                                              bg='lightgreen')
             self.clear_directory()
 
-            # --------------------- FILE UPLOADER & SELECTOR -------------------------------------- ]
             upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./files/')
             upl.onsuccess.do(self.fileupload_successful)
             upl.onfailed.do(self.fileupload_failed)
 
-            # --------------------- BUTTONS --------------------------------------------------------- ]
             self.btn_analyze = C.create_button(self.frame_left, 15, 30, 2, 28, bg='cornflowerblue',
                                                command=lambda x: self.run_analyzer(), text='ANALYZE')
 
-            # --------------------- DROPDOWNS --------------------------------------------------------- ]
             self.dropdn = C.create_dropdown(self.frame_left, self.bank_list, 15, 65, 35, 4,
                                             bg='powderblue', fg='white', command=self.drop_down_changed)
+
 
 
     def logout_clicked(self):
@@ -241,7 +240,9 @@ class BankStatementAnalyzer(App):
             self.lgt.set_text("")
 
 
+
     def register_clicked(self):
+
         print(f'Register Clicked')
         self.frame_login_register.empty()
         self.lbl_reg_username = C.create_label(self.frame_login_register, 7, 40, 5, 40, text='Username:', bg='azure')
@@ -255,6 +256,7 @@ class BankStatementAnalyzer(App):
                                   command=self.reg_on_enter_pw2, input_type='password')
         self.login_ok = C.create_button(self.frame_login_register, 10, 15, 75, 75, text='OK',
                                         command=lambda x: self.register_ok_clicked())
+
 
 
     def reg_on_enter_username(self, w, val):
@@ -276,6 +278,7 @@ class BankStatementAnalyzer(App):
 
 
     def register_ok_clicked(self):
+
         print(f'Ok clicked on Register Button')
         self.frame_login_register.empty()
 
@@ -294,8 +297,8 @@ class BankStatementAnalyzer(App):
                         lbl1 = C.create_label(self.frame_login_register, 20, 75, 20, 35,
                                               text='Passwords donot match.', bg='azure')
                         return
-        except:
-            print(f'User Record File not existing.')
+        except Exception as e:
+            print(f'Exception: {e}. User Record File not existing.')
 
         C.create_label(self.frame_login_register, 10, 75, 20, 35,
                                text='Registration Successful.', bg='azure')
@@ -313,7 +316,6 @@ class BankStatementAnalyzer(App):
     def drop_down_changed(self, w, drpvalue):
         self.notif_1.set_text('Bank: ' + drpvalue)
         self.selected_bank.append(drpvalue)
-
 
 
     def fileupload_successful(self, w, filename):
@@ -335,16 +337,23 @@ class BankStatementAnalyzer(App):
             self.notif_2.set_text(text)
 
 
-    def compute_progress(self, val):
-        self.progress.set_value(val)
-
-
     def run_analyzer(self):
         self.T = Thread(target=self.run_analysis, daemon=False)
         self.T.start()
 
 
     def run_analysis(self):
+        '''
+
+        The big function that converts the pdf into tabular data,
+        runs an pytesseract OCR on the first page, the others are
+        parsed from Tabula. The extracted output is run through
+        a postprocessing module then fed into the saved neural
+        network model to run classification on the text data and
+        return outputs to the UI in form of tables, and other
+        interactable output formats.
+
+        '''
 
         try:
             if self.selected_bank[-1] == 'Axis Bank' or self.selected_bank[-1] == 'Kotak Mahindra Bank':
@@ -355,7 +364,6 @@ class BankStatementAnalyzer(App):
                     import time
                 time.sleep(1)
 
-                # testpdf = r'Resources/aru_kotak_bank.pdf'
                 testpdf = r'Resources/axis_test_bank.pdf'
                 model_name = 'models\\model_ann_98.h5'
                 cv_name = 'models\\vectorizer.sav'
@@ -391,15 +399,15 @@ class BankStatementAnalyzer(App):
                 with self.update_lock:
                     self.progress.set_value(90)
                     self.set_notification('Rendering results...', bar=2)
-                self.dt, self.df = load_test_data(model_name, cv_name, le_name)    # Loading master_final as default arg
-
+                self.dt, self.df = load_test_data(model_name, cv_name, le_name)   # Loading master_final as default arg
                 self.dc = self.df
+
                 self.table = C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                             align='left', justify='left',
                                             display='block')
 
                 self.btn_graph = C.create_button(self.frame_left, 15, 30, 35, 28, bg='yellowgreen',
-                                                 command=lambda x: self.create_graph(), text='VIEW EXPENSES')
+                                                 command=lambda x: self.clicked_view_expenses(), text='VIEW EXPENSES')
                 with self.update_lock:
                     self.progress.set_value(0)
                     self.set_notification('DONE', bar=2)
@@ -415,7 +423,8 @@ class BankStatementAnalyzer(App):
 
 
 
-    def create_graph(self):
+    def clicked_view_expenses(self):
+
         self.frame_right.empty()
         self.frame_right_2.empty()
 
@@ -423,41 +432,45 @@ class BankStatementAnalyzer(App):
                                     align='left', justify='left',
                                     display='block')
 
-        def expense_by_category(cat='PRED_CAT', exception=False,
-                                exceptvalue='Woodstock', exceptvalue2='Credit'):
-
-            if exception:
-                print('in exception to filter exception values')
-                self.dr = self.df[(self.df[cat] != exceptvalue) & (self.df[cat] != exceptvalue2)]
-            else:
-                self.dr = self.df[self.df.DR > 0]
-                print('In exception else of def expense by category. This is normal.')
-
-            ff = self.dr.groupby(cat).sum()['DR']
-
-            fig = plt.subplots(figsize=(15, 9))
-            sns.barplot(ff.index, ff.values, palette='Greens')
-            sns.set(font_scale=1.2)
-            plt.xlabel('CATEGORY')
-            plt.ylabel('Amount')
-            plt.title('EXPENSES BY CATEGORY')
-            plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
-
-
         items = self.df.PRED_CAT.unique().tolist()
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
         self.listview.onselection.do(self.list_view_on_selected)
 
-        expense_by_category(cat='PRED_CAT', exception=False,
-                            exceptvalue='Woodstock', exceptvalue2='Credit')
+        self.expense_by_category(cat='PRED_CAT', exception=False, exceptvalue='Woodstock', exceptvalue2='Credit')
+
+
+
+    def expense_by_category(self, cat='PRED_CAT', exception=False,
+                            exceptvalue='Woodstock', exceptvalue2='Credit'):
+
+        '''
+        Creates the graph that is created upon clicking "View Expenses"
+        button on the UI.
+
+        '''
+
+        if exception:
+            print('in exception to filter exception values')
+            self.dr = self.df[(self.df[cat] != exceptvalue) & (self.df[cat] != exceptvalue2)]
+        else:
+            self.dr = self.df[self.df.DR > 0]
+            print('In exception else of def expense by category. This is normal.')
+
+        ff = self.dr.groupby(cat).sum()['DR']
+
+        fig = plt.subplots(figsize=(15, 9))
+        sns.barplot(ff.index, ff.values, palette='Greens')
+        sns.set(font_scale=1.2)
+        plt.xlabel('CATEGORY')
+        plt.ylabel('Amount')
+        plt.title('EXPENSES BY CATEGORY')
+        plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
 
 
 
     def list_view_on_selected(self, w, selected_item_key):
-        """ The selection event of the listView, returns a key of the clicked event.
-            You can retrieve the item rapidly """
 
         self.listsel = self.listview.children[selected_item_key].get_text()
         print(f'Selected Item in listview: {self.listsel}, type: {type(self.listsel)}')
@@ -489,9 +502,8 @@ class BankStatementAnalyzer(App):
 
 
     def clicked_analytics(self):
-
         '''
-        This will create the list for Analytics button.
+        This will create the listview for Analytics button.
         '''
 
         self.create_additional_graph()
@@ -518,7 +530,6 @@ class BankStatementAnalyzer(App):
 
 
     def list_view_on_selected_2(self, w, selected_item_key_2):
-
         '''
         This will create the list view for analytics.
         '''
@@ -560,6 +571,12 @@ class BankStatementAnalyzer(App):
 
 
     def graph_by_filter_2(self):
+        '''
+        This creates the graph after the user clicks on the 'Analytics'
+        button on the UI and then moves through the listview_2 to
+        cycle through the created graphs.
+
+        '''
 
         dk = self.dct[self.dct.TYPE == self.key2]
 
@@ -579,6 +596,13 @@ class BankStatementAnalyzer(App):
 
 
     def create_additional_graph(self):
+        '''
+        This function creates an additional graph and adds to
+        the UI when the user clicks on Analytics after clicking
+        'Viewing Expenses'. If 'View expenses' was not clicked,
+        only the graph created by this function wil be visible.
+
+        '''
 
         fig2 = plt.subplots(figsize=(15, 9))
         sns.countplot(self.dc.TYPE, palette='Blues')
