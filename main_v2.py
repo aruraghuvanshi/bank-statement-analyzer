@@ -29,7 +29,8 @@ THIS IS WIP
 - Modify code to add new frame for filtering options 
 - Add Filters to view graphs on transaction TYPES and PRED_CAT
 - Use the choosefile to choose file instead of hardcoded path
-+ Do the haslib for password or pickling
++ Do the hashlib for password or pickling
+
 
 
 '''

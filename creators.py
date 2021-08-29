@@ -361,6 +361,9 @@ class Creator:
         return btn
 
 
+    def load_image_for_display(self):
+        pass
+
 
 
 C = Creator()
