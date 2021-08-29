@@ -20,15 +20,16 @@ pd.options.display.max_columns = 40
 
 
 '''
-USE MAIN.PY for running.
 THIS IS WIP
 
 + Retrain Model
 - Swap DR with CR in Kotak
 - Check Dropdown of Banklist feasibility and add Kotak
 - Modify code to add new frame for filtering options 
-+ Add Filters to view graphs on transaction TYPES and PRED_CAT
+- Add Filters to view graphs on transaction TYPES and PRED_CAT
 + Use the choosefile to choose file instead of hardcoded path
++ Do the haslib for password or pickling
+
 
 '''
 
