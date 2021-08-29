@@ -3,14 +3,19 @@ import os
 import remi.gui as tk
 from creators import C
 import datetime
-# from axis_bank_statement_analyzer_trainer_v2 import load_test_data, ingest_test_pdf
-from getbankdata import GetBankData
 import matplotlib.pyplot as plt
-from PIL import Image
+import seaborn as sns
+from getbankdata import GetBankData
+import glob
 import pandas as pd
 from user import User
 from threading import Thread
 from run_saved_model import load_test_data
+
+sns.set()
+pd.options.display.max_rows = 500
+pd.options.display.max_columns = 40
+
 '''
 USE MAIN.PY for running.
 THIS IS WIP
@@ -18,7 +23,7 @@ THIS IS WIP
 + Retrain Model
 - Swap DR with CR in Kotak
 - Check Dropdown of Banklist feasibility and add Kotak
-+ Modify code to add new frame for filtering options 
+- Modify code to add new frame for filtering options 
 + Add Filters to view graphs on transaction TYPES and PRED_CAT
 + Use the choosefile to choose file instead of hardcoded path
 
@@ -43,7 +48,10 @@ class BankStatementAnalyzer(App):
     def idle(self):
         pass
 
+
     def main(self):
+        self.img = tk.Image('', height=300, margin='1px')
+
         self.date = datetime.date.today().strftime('%d-%m-%Y')
         self.time = datetime.datetime.now().time()
         self.dr = pd.DataFrame()
@@ -72,6 +80,7 @@ class BankStatementAnalyzer(App):
         self.registry_info = {}
         self.login_info = {}
         self.dt = pd.DataFrame()
+        self.dx = pd.DataFrame()
         self.frame_header = C.create_container(self.window, 10, 90, 0, 0)
         self.frame_header.css_background_color = self.frame_header_color
         self.frame_header.css_top = "0%"
@@ -79,7 +88,7 @@ class BankStatementAnalyzer(App):
         self.frame_footer_left = C.create_container(self.window, 12, 20, 0, 87)
         self.frame_footer_left.css_background_color = self.frame_footer_left_color
 
-        self.progress = C.create_progress(self.window, 1, 100, 0, 99, a=0, b=100)
+        self.progress = C.create_progress(self.frame_footer_left, 5, 100, 0, 95, a=0, b=100)
 
         self.frame_left = C.create_container(self.window, 25, 20, 0, 10)
         self.frame_left.css_background_color = self.frame_left_color
@@ -93,6 +102,7 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.css_background_color = self.frame_right_2_color
         self.frame_login_register = C.create_container(self.window, 30, 10, 90, 0)
         self.frame_login_register.css_background_color = self.frame_login_register_color
+
 
         # --------------------- LABELS ---------------------------------------------------------- ]
 
@@ -127,6 +137,24 @@ class BankStatementAnalyzer(App):
         return self.window
 
     # ====================== FUNCTIONS ============================================================ ]
+
+
+    def clear_directory(self, allfiles=True):
+
+        '''Removes files from previous run from input directory
+        before each run
+        '''
+        print("\n> \033[0;35m'resx' directory cleared of items.\033[0m\n")
+
+        if allfiles:
+            path = 'resx/*.*'
+        else:
+            path = 'resx/*.png'    # Won't remove PNG, but will remove pngs and others
+
+        files = glob.glob(path)
+        for f in files:
+            os.remove(f)
+
 
     def login_clicked(self):
         self.frame_left.empty()
@@ -174,6 +202,7 @@ class BankStatementAnalyzer(App):
             self.logout_btn = C.create_button(self.window, 3, 7, 92, 1, text='Logout',
                                              command=lambda x: self.logout_clicked(),
                                              bg='lightgreen')
+            self.clear_directory()
 
             # --------------------- FILE UPLOADER & SELECTOR -------------------------------------- ]
             upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./files/')
@@ -304,7 +333,7 @@ class BankStatementAnalyzer(App):
     def run_analyzer(self):
         self.T = Thread(target=self.run_analysis, daemon=False)
         self.T.start()
-        # self.run_analysis()
+
 
     def run_analysis(self):
 
@@ -354,7 +383,8 @@ class BankStatementAnalyzer(App):
                     self.progress.set_value(90)
                     self.set_notification('Rendering results...', bar=2)
                 self.dt, self.df = load_test_data(model_name, cv_name, le_name)    # Loading master_final as default arg
-
+                print(f'self.df in run_analysis on load test data:\n {self.df}')
+                self.dc = self.df
                 self.table = C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                             align='left', justify='left',
                                             display='block')
@@ -378,6 +408,8 @@ class BankStatementAnalyzer(App):
 
     def create_graph(self):
         self.frame_right.empty()
+        self.frame_right_2.empty()
+
 
         C.create_table(self.frame_right, self.dt, 91, 97, 2, 4,
                                     align='left', justify='left',
@@ -404,7 +436,7 @@ class BankStatementAnalyzer(App):
 
             # with self.update_lock:
             #     plt.show()                          #ValueError: signal only works in main thread
-            plt.savefig('resx/expenses.png')
+            plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=-1, dpi=300)
 
 
         items = self.df.PRED_CAT.unique().tolist()
@@ -437,7 +469,7 @@ class BankStatementAnalyzer(App):
 
         dr_sum, cr_sum = sum(xt.DR), sum(xt.CR)
 
-        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Amount: {dr_sum}',
+        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Debit Amount: {round(dr_sum,0)}',
                             bg='lightpink', align='right', justify='right')
         print(f'ct dataframe from list selection:\n{xt}')
         res = []
@@ -459,12 +491,14 @@ class BankStatementAnalyzer(App):
 
         '''
 
+        self.create_additional_graph()
         self.frame_right_2.empty()
         self.frame_filter.empty()
-        C.create_image(self.frame_right_2, '/path:expenses.png', 50, 96, 2, 2)
-        C.create_image(self.frame_right_2, '/path:expenses_type.png', 50, 96, 2, 55)
+        self.frame_right_2.css_background_color = 'white'
+        self.img1 = C.create_image(self.frame_right_2, '/path:expenses.png', 50, 100, 0, 0)
+        self.img2 = C.create_image(self.frame_right_2, '/path:expenses_type_additional.png', 50, 100, 0, 50)
 
-        print(f'self.df in clicked analytics:\n {self.df}')
+        print(f'self.df in clicked analytics:\n {self.df.head()}')
         items = self.df.TYPE.unique().tolist()
         print(f'df.TYPE items: {items}')
 
@@ -479,43 +513,27 @@ class BankStatementAnalyzer(App):
         This will create the list view for analytics.
         '''
 
-        def expense_by_type(df, cat='TYPE'): #, exception=False,
-                                # exceptvalue='Woodstock', exceptvalue2='Credit'):
-
-            print(f'self.df:\n{self.df}')
-
-            dk = df[df.DR > 0]
-            print(f'dk: \n {dk}')
-
-            typedf = dk.groupby(cat).sum()['DR'].plot(kind='bar', figsize=(15, 10),
-                                                          color='lightskyblue', fontsize=14,
-                                                          title='Expenses by Type')
-            typedf.set_xlabel('Category of Expense', fontsize=20)
-            typedf.set_ylabel('Amount in Rupees', fontsize=20)
-            typedf.set_title('Expenses by Type', fontsize=20)
-            print(f'typedf: \n {typedf}')
-
-            # with self.update_lock:
-            #     plt.show()                          #ValueError: signal only works in main thread
-            plt.savefig('resx/expenses_type.png')
-
+        self.key1 = selected_item_key_2
         self.frame_right_2.empty()
         self.listsel_2 = self.listview_2.children[selected_item_key_2].get_text()
+        self.key2 = self.listsel_2
+
         print(f'Selected Item in listview_2: {self.listsel_2}, type: {type(self.listsel_2)}')
 
         ct = self.df[self.df.TYPE == self.listsel_2]
-
+        self.dct = ct
         # Creates dataframe of the selected entity from the list
         xt = ct.copy()
         ct.DR = ct.DR.astype(str)
         ct.CR = ct.CR.astype(str)
+
         ct = ct.T
 
         dr_sum_2, cr_sum_2 = sum(xt.DR), sum(xt.CR)
 
-        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Amount: {dr_sum_2}',
+        lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Debit Amount: {round(dr_sum_2,0)}',
                             bg='lightpink', align='right', justify='right')
-        print(f'ct dataframe from list selection:\n{xt}')
+        print(f'ct dataframe from list selection:\n{xt.head()}')
         res2 = []
         for column in ct.columns:
             li = ct[column].tolist()
@@ -526,12 +544,40 @@ class BankStatementAnalyzer(App):
         self.table3 = C.create_table(self.frame_right_2, res2, 80, 97, 2, 4,
                                      align='center', justify='center', display='block')
         self.table3.style['overflow'] = 'overflow'
-        self.frame_right_2.append(self.table3)
 
+        self.T.join()
         self.frame_right.empty()
-        expense_by_type(self.df)
-        C.create_image(self.frame_right, '/path:expenses_type.png', 60, 96, 2, 2)
+        self.graph_by_filter_2()
+        # self.cycle_graphs()
 
+
+    def graph_by_filter_2(self):
+        print(f'self.key2 in graph by filter 2: {self.key2}')
+        colormap = ['lightgreen', 'lightpink', 'beige', 'aquamarine']
+        dk = self.dct[self.dct.TYPE == self.key2]
+        print(f'dk: \n {dk.head()}')
+        dk.PRED_CAT.value_counts().plot(kind='bar', figsize=(6, 6), xlabel='TYPE',
+                                         ylabel='COUNT', title=f'TRANSACTIONS BY {self.key2}',
+                                         fontsize=12, color=colormap)
+
+        plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
+
+        self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%")
+        self.frame_right.append(self.img2)
+
+
+
+    def create_additional_graph(self):
+
+        print(f'type self.dx: {type(self.dc)}')
+        print(f'self.dc in create additional graph \n: {self.dc.head()}')
+        colormap = ['black', 'maroon', 'purple', 'darkblue']
+        self.dc.TYPE.value_counts().plot(kind='bar',figsize=(15, 10), xlabel='TYPE',
+                                         ylabel='COUNT', title='TRANSACTIONS BY TYPE',
+                                        fontsize=12, color=colormap)
+
+        plt.savefig(r'resx/expenses_type_additional.png', bbox_inches='tight', pad_inches=0.05)
+        plt.clf()
 
 
 
