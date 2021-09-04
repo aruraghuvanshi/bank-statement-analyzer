@@ -20,18 +20,18 @@ pd.options.display.max_columns = 40
 
 
 '''
-THIS IS WIP
-
-+ Retrain Model
+MAIN_V2.PY
 - Swap DR with CR in Kotak
 - Check Dropdown of Banklist feasibility and add Kotak
-+ Add HDFC to the bank preprocessing
 - Modify code to add new frame for filtering options 
 - Add Filters to view graphs on transaction TYPES and PRED_CAT
 - Use the choosefile to choose file instead of hardcoded path
++ Add balance column to plot trend
++ Add module to create graphs on predicted categories
+- Add HDFC to the bank preprocessing
+- Retrain Model
++ Clean out Directory
 + Do the hashlib for password or pickling
-
-
 
 '''
 
@@ -75,7 +75,7 @@ class BankStatementAnalyzer(App):
         self.window.css_top = "0.0px"
         self.window.css_position = "absolute"
 
-        self.frame_header_color = 'deepskyblue'
+        self.frame_header_color = 'cornflowerblue'
         self.frame_left_color = 'ivory'
         self.frame_filter_color = 'whitesmoke'
         self.frame_footer_left_color = 'honeydew'
@@ -122,16 +122,16 @@ class BankStatementAnalyzer(App):
         # ----------------------------------------- LABELS ---------------------------------------------------------- ]
 
         lbl_header = C.create_label(self.frame_header, 20, 25, 10, 30, text='BANK STATEMENT ANALYZER',
-                                    bg='deepskyblue', fg='white')
+                                    bg='cornflowerblue', fg='white')
         lbl_header.css_font_size = '18px'
 
         lbl_subheader = C.create_label(self.frame_header, 10, 20, 13.35, 60,
                                        text='-- Aru Raghuvanshi build 07042021',
-                                       bg='deepskyblue', fg='white')
+                                       bg='cornflowerblue', fg='white')
         lbl_subheader.css_font_size = '12px'
 
         lbl_datetime = C.create_label(self.frame_header, 20, 7, 93, 40, text=f'Date: {self.date}',
-                                      bg='deepskyblue', fg='white', align='right')
+                                      bg='cornflowerblue', fg='white', align='right')
         lbl_datetime.css_font_size = '14px'
 
         self.notif_1 = C.create_label(self.frame_footer_left, 6, 100, 0, 10, text='')
@@ -147,21 +147,27 @@ class BankStatementAnalyzer(App):
     # ======================================== FUNCTIONS ============================================================ ]
 
 
-    def clear_directory(self, allfiles=True):
+    # def clear_directory(self, path=r'/resx', allfiles=True):
+    def clear_directory(self, emitter=None):
 
         '''Removes files from previous run from input directory
-        before each run
+        before each run.
+        emitter = None by default
+        emitter = True  for /resx
+        emitter = False for /Input PDF
         '''
-        print("\n> \033[0;35m'resx' directory cleared of items.\033[0m\n")
 
-        if allfiles:
+        if emitter:
             path = 'resx/*.*'
         else:
-            path = 'resx/*.png'    # Won't remove PNG, but will remove pngs and others
+            path = 'Input PDF/*.*'
 
         files = glob.glob(path)
         for f in files:
             os.remove(f)
+        print(f'\nPath erased: {path}')
+        print(f"\n> \033[0;35m'{path} cleared.\033[0m\n")
+
 
 
     def login_clicked(self):
@@ -214,7 +220,7 @@ class BankStatementAnalyzer(App):
             self.logout_btn = C.create_button(self.window, 3, 7, 92, 1, text='Logout',
                                              command=lambda x: self.logout_clicked(),
                                              bg='lightgreen')
-            self.clear_directory()
+            self.clear_directory(emitter=True)
 
             self.upl = C.create_uploader(self.frame_left, 10, 30, 2, 4, filename='./Input PDF/',
                                     command_succ=self.fileupload_successful,
@@ -242,6 +248,8 @@ class BankStatementAnalyzer(App):
                                             command=lambda x: self.register_clicked())
         with self.update_lock:
             self.lgt.set_text("")
+
+        self.clear_directory(emitter=False)      # Removes all user data on logoff.
 
 
 
@@ -362,7 +370,8 @@ class BankStatementAnalyzer(App):
         '''
 
         try:
-            if self.selected_bank[-1] == 'Axis Bank' or self.selected_bank[-1] == 'Kotak Mahindra Bank':
+            if self.selected_bank[-1] == 'Axis Bank' or self.selected_bank[-1] == 'Kotak Mahindra Bank'\
+                    or self.selected_bank[-1] == 'HDFC Bank':
 
                 with self.update_lock:
                     self.progress.set_value(10)
@@ -396,6 +405,8 @@ class BankStatementAnalyzer(App):
                     dxx = G.preprocess_ingest_axis_pdf()
                 elif G.bank_name == 'Kotak Mahindra Bank':
                     dxx = G.preprocess_ingest_kotak_pdf()
+                elif G.bank_name == 'HDFC Bank':
+                    dxx = G.preprocess_ingest_hdfc_pdf()
                 else:
                     print('Bank Not Supported')
 
@@ -625,7 +636,7 @@ class BankStatementAnalyzer(App):
 
 configuration = {'config_project_name': 'MainScreen',
                  'config_address': '127.0.0.1',
-                 'config_port': 8084, 'config_multiple_instance': True,
+                 'config_port': 8081, 'config_multiple_instance': True,
                  'config_enable_file_cache': True,
                  'config_start_browser': True,
                  'config_resourcepath': './resx/'}

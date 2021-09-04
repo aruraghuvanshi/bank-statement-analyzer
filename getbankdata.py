@@ -54,7 +54,6 @@ class GetBankData:
             'Ban': 'GPAY',
             'GST': 'TAX',
             'MOB': 'NETBANK',
-            'MB': 'NETBANK',
             'Consolidated': 'TAX',
             'Bank': 'GPAY',
             'ATM': 'CASHWD',
@@ -67,8 +66,6 @@ class GetBankData:
             'Visa': 'CREDIT',
             'Bank Rewarde': 'CREDIT',
             'Salary': 'CREDIT'}
-
-
 
     def clear_directory(self, allfiles=True):
 
@@ -86,22 +83,24 @@ class GetBankData:
         for f in files:
             os.remove(f)
 
-
-
     def convert_pdf_image(self):
         '''
         Returns objects at memory location. Can be accessed by indexing return.
         ex. >>> img = convert_pdf_image(pdf_file)
-        '''
 
+        '''
         print(f'> Converting {self.pdf_file} to PNG.')
         images = convert_from_path(self.pdf_file, poppler_path=r'E:\poppler-0.68.0\bin')
-        images[0].save(f'Input\\ImageFiles\\page00.png', 'PNG')
-
+        #         for i in range(len(images)):
+        #             images[i].save(f'Input/ImageFiles/page{i:02}.png', 'PNG')
+        images[0].save(f'Input/ImageFiles/page00.png', 'PNG')
+        #         print(f'> Number of generated Image files: {len(images)}\n')
         return images
 
 
-    def get_bank_name(self, filename=r'Input/ImageFiles/page00.png'):
+
+
+    def get_bank_name(self, filename='Input/ImageFiles/page00.png'):
         '''
         Get the bank name from the first 20 characters of the first
         page of the converted pdf into png and raise bank flag'''
@@ -131,18 +130,21 @@ class GetBankData:
         return self.text, self.bank_name
 
 
+
+
     def analyze_statement_format(self):
 
-        dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True)
+        dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True, silent=True)
         tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all')
-
+        #         self.dx = tabula.read_pdf(self.output_csv_name, pages='all', stream=True, guess=False)
         try:
             self.dx = pd.read_csv(self.output_csv_name)
             print(f"> \033[0;34mReading Extraction\033[0m (Try)...")
         except Exception as e:
             col_names = ["DATE", "value", "PARTICULARS", "DEBIT/CREDIT", "BALANCE"]
             self.dx = pd.read_csv(self.output_csv_name, names=col_names)
-            print(f'> \033[0;31mIn EXCEPT - {e}\033[0m analyze_statement_format')
+            self.dx = self.dx[2:]
+            print(f'> \033[0;31mIn EXCEPT of analyze_statement_format - {e}\033[0m')
 
         print(f'\nStatement Information: \nColumns: {self.dx.columns}\nnum_columns: {len(self.dx.columns)}\n')
 
@@ -168,13 +170,21 @@ class GetBankData:
             print(f'\nStatement Format: \033[0;34m{self.bank_name} Type-I\033[0m')
             print('in 3')
 
+        elif "Amt." in self.dx.columns or "Value Dt" in self.dx.columns:
+            self.format1 = True
+            self.format2 = False
+            self.bank_name = 'HDFC Bank'
+            print(f'\nStatement Format: \033[0;34m{self.bank_name} Type-I\033[0m')
+            print('in 4')
+
         else:
             self.format1 = True
             self.format2 = False
             print(f'\nStatement Format: \033[0;34m{self.bank_name} Type-I\033[0m')
-            print('in 4')
+            print('in else 5')
 
         return self.dx
+
 
 
 
@@ -212,7 +222,7 @@ class GetBankData:
                                'Particulars': 'PARTICULARS'}, inplace=True)
 
             print('\nOutputcsv created.')
-            df.to_csv(f'Output\\semi_final.csv', index=False)
+            df.to_csv(f'Output\\axis_final_type1.csv', index=False)
             self.dx = df
             return df
 
@@ -236,9 +246,10 @@ class GetBankData:
                                'Particulars': 'PARTICULARS'}, inplace=True)
 
             print('\n> Conversion complete. Outputcsv created.')
-            df.to_csv(f'Output\\semi_final.csv', index=False)
+            df.to_csv(f'Output\\axis_final_type2.csv', index=False)
             self.dx = df
             return df
+
 
 
 
@@ -263,11 +274,11 @@ class GetBankData:
         if self.format2:
 
             print(f'> Parsing Kotak \033[0;34mType-II\033[0m statement...')
-            dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True)
+            dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True, silent=True)
             tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all')
 
             df = pd.read_csv(self.output_csv_name)
-            # df = df.iloc[1:-2]
+            df = df.iloc[1:-2]
             df.rename(columns={'Statement of Banking Account': 'DATE',
                                'Unnamed: 1': 'PARTICULARS', 'Unnamed: 3': 'DR',
                                'Unnamed: 4': 'CR'}, inplace=True)
@@ -283,32 +294,73 @@ class GetBankData:
             print(df.isna().sum())
             print(f'Shape after dropna: {df.shape}')
 
-            df.to_csv(f'Output\\semi_final.csv', index=False)
+            df.to_csv(f'Output\\kotak_final_type2.csv', index=False)
             print(f'\033[0;32mOutput file created in {round(time() - t1, 1)}s.\033[0m')
             self.dx = df
             return df
 
         else:
-            print(f'> Parsing Kotak \033[0;34mType-I\033[0m statement...')
-            dfs = tabula.read_pdf(self.pdf_file, pages='all', stream=True, guess=False)
-            tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all', stream=True)
-            col_names = ["DATE", "value", "PARTICULARS", "DEBIT/CREDIT", "BALANCE"]
-            df = pd.read_csv(self.output_csv_name, names=col_names)
-            # df = df.loc[1:]
-            df = df.drop(['value'], axis=1)
-            df = df.dropna().reset_index(drop=True)
-            df['DR/CR'] = df["DEBIT/CREDIT"].apply(lambda x: 'DR' if '+' in x else 'CR')
-            df['Amount'] = df['DEBIT/CREDIT'].apply(lambda x: (re.split('[- +]', x)[-1]))
-            df['Amount'] = df['Amount'].apply(lambda o: o.split('.')[0])
-            df['Amount'] = df.Amount.apply(lambda v: v.replace(',', '')).astype(int)
-            df['CR'] = df.apply(create_credit_column, axis=1)
-            df['DR'] = df.apply(create_debit_column, axis=1)
-            df = df.drop(['DEBIT/CREDIT', 'BALANCE', 'Amount', 'DR/CR'], axis=1)
-            print(f'> Conversion complete.')
-            df.to_csv(f'Output\\semi_final.csv', index=False)
-            print(f'\033[0;32mOutput file created in {round(time() - t1, 1)}s.\033[0m')
-            self.dx = df
-            return df
+            try:
+                print(f'> Parsing Kotak \033[0;34mType-I\033[0m statement...')
+                dfs = tabula.read_pdf(self.pdf_file, pages='all', stream=True, guess=False, silent=True)
+                tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all', stream=True)
+                col_names = ["DATE", "value", "PARTICULARS", "DEBIT/CREDIT", "BALANCE"]
+                df = pd.read_csv(self.output_csv_name, names=col_names)
+                try:
+                    df = df.loc[1:]
+                except Exception as e:
+                    print(f'\033[0;31mIn Except preprocess_ingest_kotak format-1 else block\033[0m - {e}')
+                    df = df.iloc[1:]
+
+                df = df.drop(['value'], axis=1)
+                df = df.dropna().reset_index(drop=True)
+                df['DR/CR'] = df["DEBIT/CREDIT"].apply(lambda x: 'CR' if '+' in x else 'DR')
+                df['Amount'] = df['DEBIT/CREDIT'].apply(lambda x: (re.split('[- +]', x)[-1]))
+                df['Amount'] = df['Amount'].apply(lambda o: o.split('.')[0])
+                df['Amount'] = df.Amount.apply(lambda v: v.replace(',', '')).astype(int)
+                df['CR'] = df.apply(create_credit_column, axis=1)
+                df['DR'] = df.apply(create_debit_column, axis=1)
+                df = df.drop(['DEBIT/CREDIT', 'BALANCE', 'Amount', 'DR/CR'], axis=1)
+                print(f'> Conversion complete.')
+                df.to_csv(f'Output\\kotak_final_type1.csv', index=False)
+                print(f'\033[0;32mOutput file created in {round(time() - t1, 1)}s.\033[0m')
+                self.dx = df
+                return df
+            except Exception as e:
+                print(f'\033[0;31mEXCEPTION in preprocess_ingest_kotak\033[0m: - {e}')
+
+
+
+    def preprocess_ingest_hdfc_pdf(self):
+
+        t1 = time()
+        if self.format1:
+            try:
+                print(f'> Parsing HDFC \033[0;34mType-I\033[0m statement...')
+                dfs = tabula.read_pdf(self.pdf_file, pages='all', stream=True, guess=False, silent=True)
+                tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all', stream=True)
+                col_names = ["DATE", "PARTICULARS", "CHQ", "valuedt", "DR", "CR", "BALANCE"]
+                df = pd.read_csv(self.output_csv_name, names=col_names)
+                df = df.iloc[1:]
+                odf = df.copy()
+                df = df.drop(['CHQ', 'valuedt', 'BALANCE'], axis=1)
+                df = df[df['DATE'].notna()].reset_index(drop=True)
+                df.DR.fillna(0, inplace=True)
+                df.CR.fillna(0, inplace=True)
+                print(df.shape)
+                self.dx = df
+                print(self.dx.columns)
+                print(f'> Conversion complete.')
+                df.to_csv(f'Output\\hdfc_final_type1.csv', index=False)
+                print(f'\033[0;32mOutput file created in {round(time() - t1, 1)}s.\033[0m')
+                return df
+            except Exception as e:
+                print(f'\033[0;31mEXCEPTION in preprocess_ingest_hdfc\033[0m: - {e}')
+        else:
+            print('> Parsing Type-II of HDFC Statement pdf')
+            pass
+
+
 
     def preprocess_overall_bankdata(self):
 
@@ -319,17 +371,18 @@ class GetBankData:
             mod_string = re.sub(pattern, '', str(org_string))
             return mod_string
 
-
         df['DATE'] = pd.to_datetime(df['DATE']).dt.strftime('%d-%m-%Y')
         df.PARTICULARS = df.PARTICULARS.apply(remove_digits)
         df.PARTICULARS = df.PARTICULARS.str.split('/')
-
+        #         df['TYPE'] = df.PARTICULARS.str[0]
         df.PARTICULARS = df.PARTICULARS.apply(', '.join)
         df.PARTICULARS = df.PARTICULARS.str.replace(',', ' ')
         df.PARTICULARS = df.PARTICULARS.str.replace('-', ' ')
-
+        #         df.TYPE = df.TYPE.str.replace('-', ' ')
         df.PARTICULARS = df.PARTICULARS.str.replace(':', ' ')
-
+        #         df.TYPE = df.TYPE.str.replace(':', ' ')
+        #         df.TYPE = df.TYPE.str.replace('\n', ' ', regex=True)
+        #         df.TYPE = df.TYPE.str.replace('\r', ' ', regex=True)
         df.PARTICULARS = df.PARTICULARS.str.replace('.', ' ')
         df.PARTICULARS = df.PARTICULARS.str.replace('_', ' ')
         df.PARTICULARS = df.PARTICULARS.str.replace('\n', ' ', regex=True)
@@ -344,7 +397,7 @@ class GetBankData:
         df.loc[~df['TYPE'].isin(self.mapping.values()), 'TYPE'] = 'OTH'
         df.loc[df['PARTICULARS'].str.contains('Paytm'), 'TYPE'] = 'PAYTM'
         df.loc[df['PARTICULARS'].str.contains('GOOGLEPAY'), 'TYPE'] = 'GPAY'
+        df.loc[df['PARTICULARS'].str.contains('MB'), 'TYPE'] = 'NETBANK'
         df.to_csv(f'Output\\master_output.csv', index=False)
         self.dx = df
         return df
-
