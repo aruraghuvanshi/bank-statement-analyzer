@@ -121,7 +121,6 @@ class BankStatementAnalyzer(App):
         self.img = tk.Image('', height=300, margin='1px')
         self.upl =''
 
-        # ----------------------------------------- LABELS ---------------------------------------------------------- ]
 
         lbl_header = C.create_label(self.frame_header, 20, 25, 10, 30, text='BANK STATEMENT ANALYZER',
                                     bg='cornflowerblue', fg='white')
@@ -146,10 +145,8 @@ class BankStatementAnalyzer(App):
 
         return self.window
 
-    # ======================================== FUNCTIONS ============================================================ ]
 
 
-    # def clear_directory(self, path=r'/resx', allfiles=True):
     def clear_directory(self, emitter=None):
 
         '''Removes files from previous run from input directory
@@ -327,9 +324,11 @@ class BankStatementAnalyzer(App):
             self.master_user.to_csv('user_registration_info.csv', mode='a', header=False)
 
 
+
     def drop_down_changed(self, w, drpvalue):
         self.notif_1.set_text('Bank: ' + drpvalue)
         self.selected_bank.append(drpvalue)
+
 
 
     def fileupload_successful(self, w, filename):
@@ -339,11 +338,13 @@ class BankStatementAnalyzer(App):
         return filename
 
 
+
     def fileupload_failed(self, w, filename):
         # lbl_fail = C.create_label(self.frame_left, 5,60,40,1, text=f'{filename} Upload Failed')
         # lbl_fail.css_background_color = self.frame_left_color
         self.set_notification(f'{filename} upload failed.')
         self.filename = filename
+
 
 
     def set_notification(self, text, bar=1):
@@ -353,9 +354,11 @@ class BankStatementAnalyzer(App):
             self.notif_2.set_text(text)
 
 
+
     def run_analyzer(self):
         self.T = Thread(target=self.run_analysis, daemon=False)
         self.T.start()
+
 
 
     def run_analysis(self):
@@ -386,7 +389,6 @@ class BankStatementAnalyzer(App):
                 model_name = 'Model Trainer\\Saved Models\\model_ann_99.h5'
                 cv_name = 'Model Trainer\\Saved Models\\vectorizer.sav'
                 le_name = 'Model Trainer\\Saved Models\\target_label_encoder.sav'
-
 
                 from time import time
                 t1 = time()
@@ -444,6 +446,7 @@ class BankStatementAnalyzer(App):
 
 
 
+
     def clicked_view_expenses(self):
 
         self.frame_right.empty()
@@ -474,6 +477,8 @@ class BankStatementAnalyzer(App):
         plt.title('EXPENSES BY CATEGORY')
         plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
         print(f'That worked!')
+
+
 
 
     def list_view_on_selected(self, w, selected_item_key):
@@ -507,6 +512,8 @@ class BankStatementAnalyzer(App):
 
 
 
+
+
     def clicked_analytics(self):
         '''
         This will create the listview for Analytics button.
@@ -533,6 +540,8 @@ class BankStatementAnalyzer(App):
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview_2 = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
         self.listview_2.onselection.do(self.list_view_on_selected_2)
+
+
 
 
     def list_view_on_selected_2(self, w, selected_item_key_2):
