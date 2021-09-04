@@ -607,6 +607,7 @@ class BankStatementAnalyzer(App):
 
         self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%")
         self.frame_right.append(self.img2)
+        print('Need more graphs')
 
 
 

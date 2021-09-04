@@ -59,8 +59,8 @@ print(f'Xcv.shape: {Xcv.shape}, type(Xcv): {type(Xcv)}')
 
 from imblearn.over_sampling import SMOTE
 
-sm = SMOTE(random_state=42, k_neighbors=1)
-Xtrain, ytrain = sm.fit_resample(Xcv, y.ravel())
+sm2 = SMOTE(random_state=42, k_neighbors=1)
+Xtrain, ytrain = sm2.fit_resample(Xcv, y.ravel())
 Xtrain = pd.DataFrame(Xtrain)
 ytrain = pd.DataFrame(ytrain)
 
