@@ -458,7 +458,7 @@ class BankStatementAnalyzer(App):
         items = self.df.PRED_CAT.unique().tolist()
         print(f'Items in self.df.PRED_CAT unique:\n {items}')
 
-        lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
+        lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text=' >>  Filter by :', bg='khaki')
         self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
         self.listview.onselection.do(self.list_view_on_selected)
 
@@ -526,7 +526,7 @@ class BankStatementAnalyzer(App):
         try:
             self.img1 = tk.Image(tk.load_resource("./resx/expenses.png"), width="100%", height="50%")
         except Exception as e:
-            print(f'In Exception: {e}; Expenses Graph missing')
+            print(f'\033[0;31mIn Exception - clicked analytics:\033[0m {e}; Expenses Graph missing')
 
         self.img2 = tk.Image(tk.load_resource("./resx/expenses_type_additional.png"),
                              width="100%", height="50%", top="50%")
@@ -534,7 +534,7 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.append(self.img1)
         self.frame_right_2.append(self.img2)
 
-        items = self.df.TYPE.unique().tolist()
+        items = self.df.TYPE.unique().tolist() + self.df.PRED_CAT.unique().tolist()     # Adding Pred_Cat for analytics
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text='>>  Filter by:', bg='khaki')
         self.listview_2 = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
@@ -555,9 +555,13 @@ class BankStatementAnalyzer(App):
 
         print(f'Selected Item in listview_2: {self.listsel_2}, type: {type(self.listsel_2)}')
 
-        ct = self.df[self.df.TYPE == self.listsel_2]
-        self.dct = ct
+        if self.listsel_2.isupper():                        # The only way to discern between type and pred in listview.
+            ct = self.df[self.df.TYPE == self.listsel_2]
+        else:
+            ct = self.df[self.df.PRED_CAT == self.listsel_2]
 
+
+        self.dct = ct
         # Creates dataframe of the selected entity from the list
         xt = ct.copy()
         ct.DR = ct.DR.astype(str)
@@ -567,7 +571,9 @@ class BankStatementAnalyzer(App):
 
         lr = C.create_label(self.frame_right_2, 5, 95, 2, 95, text=f'Total Debit Amount: {round(dr_sum_2,0)}',
                             bg='lightpink', align='right', justify='right')
-        print(f'ct dataframe from list selection:\n{xt.head()}')
+        print(f'ct dataframe from list_selection_2:\n{xt.head()}')
+
+
         res2 = []
         for column in ct.columns:
             li = ct[column].tolist()
@@ -591,22 +597,34 @@ class BankStatementAnalyzer(App):
         cycle through the created graphs.
 
         '''
-
-        dk = self.dct[self.dct.TYPE == self.key2]
-
         palette = ['PuOr', 'Reds', 'Greens', 'coolwarm', 'autumn']
-        ch = random.choice(palette)
-        fig = plt.subplots(figsize=(15, 9))
-        sns.countplot(dk.PRED_CAT, label='HEY', palette=ch)
-        sns.set(font_scale=1.4)
-        plt.xlabel('Transaction Type')
-        plt.ylabel('Count')
-        plt.title(f'TRANSACTIONS BY {self.key2}')
-        plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
 
-        self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%")
+        if self.listsel_2.isupper():
+            dk = self.dct[self.dct.TYPE == self.key2]
+            ch = random.choice(palette)
+            fig = plt.subplots(figsize=(15, 9))
+            sns.countplot(dk.PRED_CAT, label='HEY', palette=ch)
+            sns.set(font_scale=1.4)
+            plt.xlabel('Transaction Type')
+            plt.ylabel('Count')
+            plt.title(f'Transactions bY {self.key2}')
+            plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
+
+
+        else:
+            dk = self.df[self.df.PRED_CAT == self.key2]
+            ch = random.choice(palette)
+            fig = plt.subplots(figsize=(15, 9))
+            sns.lineplot(range(len(dk)), dk.DR, palette=ch)
+            sns.set(font_scale=1.4)
+            plt.xlabel('Frequency of Transaction')
+            plt.ylabel('Amount')
+            plt.title(f'Expenses of {self.key2} over Times of Transactions')
+            plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
+
+        self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%", margin='5px')
         self.frame_right.append(self.img2)
-        print('Need more graphs')
+
 
 
 
