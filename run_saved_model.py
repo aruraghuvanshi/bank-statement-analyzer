@@ -2,7 +2,8 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 pd.set_option('display.width', 400)
 pd.set_option('display.max_columns', 10)

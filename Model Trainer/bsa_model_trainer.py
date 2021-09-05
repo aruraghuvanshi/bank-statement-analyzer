@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 import pickle
 from imblearn.over_sampling import SMOTE
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import time
 
 start = time.time()
@@ -34,7 +36,7 @@ cv_name = 'vectorizer.sav'
 pickle.dump(cv, open(cv_name, 'wb'))
 print(f'Xcv.shape: {Xcv.shape}, type(Xcv): {type(Xcv)}')
 
-from imblearn.over_sampling import SMOTE
+
 
 sm = SMOTE(random_state=22)
 
