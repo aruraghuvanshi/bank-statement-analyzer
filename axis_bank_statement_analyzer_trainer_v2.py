@@ -17,8 +17,6 @@ import pickle
 from tensorflow.keras.models import load_model
 import tabula
 
-
-
 pd.options.display.max_rows = 500
 pd.options.display.max_columns = 40
 warnings.filterwarnings('ignore')
