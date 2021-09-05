@@ -26,14 +26,13 @@ Main_v3 was copy of 2, but was not being tracked on git, 4 is created.
 - Swap DR with CR in Kotak
 - Check Dropdown of Banklist feasibility and add Kotak
 - Modify code to add new frame for filtering options 
-- Add Filters to view graphs on transaction TYPES and PRED_CAT
 - Use the choosefile to choose file instead of hardcoded path
-+ Add balance column to plot trend
-+ Add module to create graphs on predicted categories
 - Add HDFC to the bank preprocessing
+- Clean out Directory
 - Retrain Model
-+ Clean out Directory
+- Add Filters to view graphs on transaction TYPES and PRED_CAT
 + Do the hashlib for password or pickling
++ Revert to not having the entire code in main but modularize it.
 
 '''
 
@@ -620,7 +619,7 @@ class BankStatementAnalyzer(App):
 
         '''
 
-        fig2 = plt.subplots(figsize=(15, 9))
+        plt.subplots(figsize=(15, 9))
         sns.countplot(self.dc.TYPE, palette='Blues')
         sns.set(font_scale=1.2)
         plt.xlabel('Transaction Type')
