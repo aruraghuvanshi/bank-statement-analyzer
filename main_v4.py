@@ -622,7 +622,7 @@ class BankStatementAnalyzer(App):
             plt.title(f'Expenses of {self.key2} over Times of Transactions')
             plt.savefig(r'resx/anomaly.jpg', pad_inches=0.1, dpi=200)
 
-        self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="100%", height="75%", margin='5px')
+        self.img2 = tk.Image(tk.load_resource("./resx/anomaly.jpg"), width="96%", height="75%", margin='2%')
         self.frame_right.append(self.img2)
 
 
