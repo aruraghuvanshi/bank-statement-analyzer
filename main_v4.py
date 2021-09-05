@@ -475,7 +475,7 @@ class BankStatementAnalyzer(App):
         plt.ylabel('Amount')
         plt.title('EXPENSES BY CATEGORY')
         plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
-        print(f'That worked!')
+
 
 
 

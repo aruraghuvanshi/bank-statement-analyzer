@@ -136,7 +136,6 @@ class GetBankData:
 
         dfs = tabula.read_pdf(self.pdf_file, pages='all', guess=False, stream=True, silent=True)
         tabula.convert_into(self.pdf_file, self.output_csv_name, output_format='csv', pages='all')
-        #         self.dx = tabula.read_pdf(self.output_csv_name, pages='all', stream=True, guess=False)
         try:
             self.dx = pd.read_csv(self.output_csv_name)
             print(f"> \033[0;34mReading Extraction\033[0m (Try)...")
