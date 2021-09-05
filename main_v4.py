@@ -456,7 +456,7 @@ class BankStatementAnalyzer(App):
                                     display='block')
 
         items = self.df.PRED_CAT.unique().tolist()
-        print(f'Items in self.df.PRED_CAT unique:\n {items}')
+
 
         lblv = C.create_label(self.frame_filter, 5, 100, 0, 3, text=' >>  Filter by :', bg='khaki')
         self.listview = C.create_listview(self.frame_filter, items, 80, 60, 2, 10, bg='whitesmoke')
@@ -464,7 +464,7 @@ class BankStatementAnalyzer(App):
 
         self.df.DR = self.df.DR.astype(float)
         self.dr = self.df[self.df.DR > 0]
-        print(f'self.dr:\n {self.dr}')
+        print(f'self.dr:\n {self.dr.head()}')
 
         ff = self.dr.groupby('PRED_CAT').sum()['DR']
 
@@ -475,7 +475,6 @@ class BankStatementAnalyzer(App):
         plt.ylabel('Amount')
         plt.title('EXPENSES BY CATEGORY')
         plt.savefig('resx/expenses.png', bbox_inches='tight', pad_inches=0.05, dpi=300)
-
 
 
 
@@ -524,12 +523,12 @@ class BankStatementAnalyzer(App):
         self.frame_right_2.css_background_color = 'white'
 
         try:
-            self.img1 = tk.Image(tk.load_resource("./resx/expenses.png"), width="100%", height="50%")
+            self.img1 = tk.Image(tk.load_resource("./resx/expenses.png"), width="96%", height="49%", margin='2%')
         except Exception as e:
             print(f'\033[0;31mIn Exception - clicked analytics:\033[0m {e}; Expenses Graph missing')
 
         self.img2 = tk.Image(tk.load_resource("./resx/expenses_type_additional.png"),
-                             width="100%", height="50%", top="50%")
+                             width="96%", height="50%", top="51%", margin='2%')
 
         self.frame_right_2.append(self.img1)
         self.frame_right_2.append(self.img2)
@@ -597,13 +596,14 @@ class BankStatementAnalyzer(App):
         cycle through the created graphs.
 
         '''
-        palette = ['PuOr', 'Reds', 'Greens', 'coolwarm', 'autumn']
+        palette = ['PuOr', 'Reds', 'Greens', 'YlGnBu', 'PuBuGn']
+        colors = ['indianred', 'navy', 'maroon', 'purple', 'black']
 
         if self.listsel_2.isupper():
             dk = self.dct[self.dct.TYPE == self.key2]
             ch = random.choice(palette)
             fig = plt.subplots(figsize=(15, 9))
-            sns.countplot(dk.PRED_CAT, label='HEY', palette=ch)
+            sns.countplot(dk.PRED_CAT, palette=ch)
             sns.set(font_scale=1.4)
             plt.xlabel('Transaction Type')
             plt.ylabel('Count')
@@ -614,8 +614,9 @@ class BankStatementAnalyzer(App):
         else:
             dk = self.df[self.df.PRED_CAT == self.key2]
             ch = random.choice(palette)
+            ch1 = random.choice(colors)
             fig = plt.subplots(figsize=(15, 9))
-            sns.lineplot(range(len(dk)), dk.DR, palette=ch)
+            sns.lineplot(range(len(dk)), dk.DR, palette=ch, linewidth=1.5, color=ch1)
             sns.set(font_scale=1.4)
             plt.xlabel('Frequency of Transaction')
             plt.ylabel('Amount')
@@ -651,7 +652,7 @@ class BankStatementAnalyzer(App):
 
 configuration = {'config_project_name': 'MainScreen',
                  'config_address': '127.0.0.1',
-                 'config_port': 8081, 'config_multiple_instance': True,
+                 'config_port': 8082, 'config_multiple_instance': True,
                  'config_enable_file_cache': True,
                  'config_start_browser': True,
                  'config_resourcepath': './resx/'}

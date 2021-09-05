@@ -1,7 +1,8 @@
 import pandas as pd
 import pickle
+import tensorflow as tf
 from tensorflow.keras.models import load_model
-import numpy as np
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 pd.set_option('display.width', 400)
 pd.set_option('display.max_columns', 10)
