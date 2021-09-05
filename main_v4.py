@@ -27,7 +27,9 @@ Main_v3 was copy of 2, but was not being tracked on git, 4 is created.
 - Check Dropdown of Banklist feasibility and add Kotak
 - Modify code to add new frame for filtering options 
 - Use the choosefile to choose file instead of hardcoded path
-- Add HDFC to the bank preprocessing
+- Add Axis Bank
+- Add Kotak Bank
+- Add HDFC 
 - Clean out Directory
 - Retrain Model
 - Add Filters to view graphs on transaction TYPES and PRED_CAT
@@ -56,6 +58,12 @@ class BankStatementAnalyzer(App):
 
 
     def main(self):
+
+        '''All the inits will happen in main function if the entire GUI
+        is being rendered from the BankStatementAnalyzer class, else
+        the Init of the new class can be created as a separte py file and
+        it's class must be initialized in this main, with self as its argument.'''
+
 
         self.date = datetime.date.today().strftime('%d-%m-%Y')
         self.time = datetime.datetime.now().time()
@@ -170,6 +178,8 @@ class BankStatementAnalyzer(App):
 
     def login_clicked(self):
 
+        ''' Code when login button is clicked '''
+
         self.frame_left.empty()
         print(f'Login Button pressed')
         self.frame_login_register.empty()
@@ -188,6 +198,8 @@ class BankStatementAnalyzer(App):
 
 
     def login_ok_clicked(self):
+
+        ''' Code when login ok button is clicked '''
 
         print(f'Ok clicked on Login Button')
         self.frame_login_register.empty()
@@ -234,6 +246,9 @@ class BankStatementAnalyzer(App):
 
     def logout_clicked(self):
 
+        ''' Code when logout button is clicked. The function
+         on ending removes all user data from the storage.'''
+
         self.frame_left.empty()
         self.frame_right.empty()
         self.frame_right_2.empty()
@@ -252,6 +267,8 @@ class BankStatementAnalyzer(App):
 
 
     def register_clicked(self):
+
+        ''' Code when register button is clicked '''
 
         print(f'Register Clicked')
         self.frame_login_register.empty()
@@ -288,6 +305,9 @@ class BankStatementAnalyzer(App):
 
 
     def register_ok_clicked(self):
+
+        ''' Checks if the username already exists in the record, and
+         creates a new record if doesn't. '''
 
         print(f'Ok clicked on Register Button')
         self.frame_login_register.empty()
@@ -481,6 +501,10 @@ class BankStatementAnalyzer(App):
 
     def list_view_on_selected(self, w, selected_item_key):
 
+        ''' This fucntion creates the filter by list_view_1 on the left frame
+         of the UI and assigns the listener function that is activated when the
+          list elements are clicked on.'''
+
         self.listsel = self.listview.children[selected_item_key].get_text()
         print(f'Selected Item in listview: {self.listsel}, type: {type(self.listsel)}')
 
@@ -634,7 +658,9 @@ class BankStatementAnalyzer(App):
         This function creates an additional graph and adds to
         the UI when the user clicks on Analytics after clicking
         'Viewing Expenses'. If 'View expenses' was not clicked,
-        only the graph created by this function wil be visible.
+        only the graph created by this function wil be visible
+        along with an exception message in the terminal that
+        the previous graph was not found.
 
         '''
 
